@@ -25,12 +25,12 @@ class Token:
 
 
 TOKEN_PATTERNS = {
-    "comment": r'[//].*?(\n|$)|[#].*?(\n|$)',
+    "comment": r'(//.*?(\n|$)|#.*?(\n|$))',
     "int_literal": r'\b[0-9]+\b',
     "bool_literal": r'\b(true|false)\b',
-    "unary_op": r'not',
-    "binary_op": r'!=|==|<=|>=|<|>|\+=?|\/|\*|\-=?|\=(?!\d)',
-    "keyword": r'\bvar|while|if|else|then\b',
+    "unary_op": r'\bnot\b',
+    "binary_op": r'!=|==|<=|>=|<|>|\%=?|\+=?|\/=?|\*=?|\-=?|\=(?!\d)',
+    "keyword": r'\bvar|while|if|else|then|do\b',
     "punctuation": r'[(),;{}:]',
     "newline": r'\n',
     "whitespace": r'[ \t]+',
