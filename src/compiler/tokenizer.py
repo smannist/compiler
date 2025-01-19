@@ -25,19 +25,18 @@ class Token:
 
 
 TOKEN_PATTERNS = {
-    "int_literal": r'(?P<int_literal>\b[1-9][0-9]*\b|\b0\b)',
-    "bool_literal": r'(?P<bool_literal>\b(true|false)\b)',
-    "keyword": r'(?<!\S)(?P<keyword>var|while|if|else|then)(?!\S)',
-    "unary_op": r'(?<!\S)(?P<unary_op>not)(?!\S)',
-    "binary_op": r'(?<!\S)(?P<binary_op>!=|==|<=|>=|<|>|\+|\/|\*|\-|=)(?!\S)',
-    "punctuation": r'(?P<punctuation>[(),;{}:])',
-    "newline": r'(?P<newline>\n)',
-    "whitespace": r'(?P<whitespace>[ \t]+)',
-    "comment": r'(?P<comment>[#].*?(\n|$)|[//].*?(\n|$))',
-    "identifier": r'(?P<identifier>_?[A-Za-z_]+[a-zA-Z0-9_]*)',
-    "except": r'(?P<except>.)',
+    "comment": r'[//].*?(\n|$)|[#].*?(\n|$)',
+    "int_literal": r'\b[0-9]+\b',
+    "bool_literal": r'\b(true|false)\b',
+    "unary_op": r'not',
+    "binary_op": r'!=|==|<=|>=|<|>|\+=?|\/|\*|\-=?|\=(?!\d)',
+    "keyword": r'\bvar|while|if|else|then\b',
+    "punctuation": r'[(),;{}:]',
+    "newline": r'\n',
+    "whitespace": r'[ \t]+',
+    "identifier": r'_?[A-Za-z_]+[a-zA-Z0-9_]*',
+    "except": r'.',
 }
-
 
 def tokenize(source_code: str) -> list[Token]:
     tokens = []
@@ -45,7 +44,9 @@ def tokenize(source_code: str) -> list[Token]:
     line = 0
     column = 0
 
-    pattern = regex.compile("|".join(TOKEN_PATTERNS.values()))
+    pattern = regex.compile(
+        "|".join(f"(?P<{token_type}>{pattern})" for token_type, pattern in TOKEN_PATTERNS.items())
+    )
 
     for match in regex.finditer(pattern, source_code):
         token_type = match.lastgroup
@@ -60,7 +61,8 @@ def tokenize(source_code: str) -> list[Token]:
             continue
         elif token_type == "except":
             raise RuntimeError(
-                f"Caught unexpected value: '{value}' at position ({line},{column}).")
+                f"Caught unexpected value: '{value}' at position ({line},{column})."
+            )
 
         tokens.append(Token(L(line, column), token_type, value))
 
