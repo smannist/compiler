@@ -155,6 +155,6 @@ def test_incorrect_source_code_raises_an_error() -> None:
     try:
         tokenize("x !#¤")
     except RuntimeError as e:
-        assert str(e) == "Caught unexpected value: '!' at position (0,2)."
+        assert str(e) == "Caught unexpected value: '!' at position (1,3)."
     else:
         assert False, "Expected RuntimeError was not raised"

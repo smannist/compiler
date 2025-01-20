@@ -41,8 +41,8 @@ TOKEN_PATTERNS = {
 def tokenize(source_code: str) -> list[Token]:
     tokens = []
 
-    line = 0
-    column = 0
+    line = 1
+    column = 1
 
     pattern = regex.compile(
         "|".join(f"(?P<{token_type}>{pattern})" for token_type, pattern in TOKEN_PATTERNS.items())
