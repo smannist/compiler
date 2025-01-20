@@ -23,7 +23,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def consume(expected: str | list[str] | None = None) -> Token:
         nonlocal pos
         token = peek()
-        print(token)
         if isinstance(expected, str) and token.text != expected:
             raise Exception(f"{token.loc}: expected '{expected}'")
         if isinstance(expected, list) and token.text not in expected:
@@ -91,4 +90,19 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume(")")
         return expr
 
-    return parse_expression()
+    def parse_source_code() -> ast.Expression:
+        expressions = []
+
+        while peek().type != "end":
+            expression = parse_expression()
+
+            if not isinstance(expression, ast.BinaryOp):
+                raise Exception(
+                    "incorrect expression."
+                )
+
+            expressions.append(expression)
+
+        return expressions
+
+    return parse_source_code()
