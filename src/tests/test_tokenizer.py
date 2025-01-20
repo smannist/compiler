@@ -13,6 +13,18 @@ def test_tokenizer_passes_comments() -> None:
         Token(loc=L, type="identifier", text="y")
     ]
 
+def test_tokenizer_passes_multiline_comments() -> None:
+    source_code = """
+    /* this is a multiline comment and it ends now */ print_int(123);
+    """
+    assert tokenize(source_code) == [
+        Token(loc=L, type="identifier", text="print_int"),
+        Token(loc=L, type="punctuation", text="("),
+        Token(loc=L, type="int_literal", text="123"),
+        Token(loc=L, type="punctuation", text=")"),
+        Token(loc=L, type="punctuation", text=";")
+    ]
+
 def test_expression_without_whitespace_tokenized_correctly() -> None:
     assert tokenize("x+z-2-4") == [
         Token(loc=L, type="identifier", text="x"),

@@ -25,7 +25,7 @@ class Token:
 
 
 TOKEN_PATTERNS = {
-    "comment": r'(//.*?(\n|$)|#.*?(\n|$))',
+    "comment": r'(//.*?(\n|$)|#.*?(\n|$)|/\*.*?\*/)',
     "int_literal": r'\b[0-9]+\b',
     "bool_literal": r'\b(true|false)\b',
     "unary_op": r'\bnot\b',
