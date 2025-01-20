@@ -10,9 +10,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     pos = 0
 
-    def peek() -> Token:
-        if pos < len(tokens):
-            return tokens[pos]
+    def peek(offset: int = 0) -> Token:
+        if pos + offset < len(tokens):
+            return tokens[pos + offset]
 
         return Token(
                 loc=tokens[-1].loc,
@@ -23,7 +23,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def consume(expected: str | list[str] | None = None) -> Token:
         nonlocal pos
         token = peek()
-        if isinstance(expected, str) and token.text != expected:
+        if isinstance(expected, str) and token.text != expected and expected != "else":
             raise Exception(f"{token.loc}: expected '{expected}'")
         if isinstance(expected, list) and token.text not in expected:
             comma_separated = ", ".join([f'"{e}"' for e in expected])
@@ -37,11 +37,40 @@ def parse(tokens: list[Token]) -> ast.Expression:
         token = consume()
         return ast.Literal(int(token.text))
 
+    def parse_bool_literal() -> ast.Literal:
+        if peek().type != "bool_literal":
+            raise Exception(f"{peek().loc}: expected bool literal")
+        token = consume()
+        return ast.Literal(True if token.text == "true" else False)
+
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
             raise Exception(f"{peek().loc}: expected an identifier")
+        if peek(offset=1).type == "identifier":
+            raise Exception(f"{peek(offset=1).loc}: incorrect expression: identifier should be followed by a binary operator or a statement.")
         token = consume()
         return ast.Identifier(token.text)
+
+    def parse_conditional() -> ast.Conditional:
+        required_keywords = ["if", "then"]
+        expressions = []
+
+        for keyword in required_keywords:
+            consume(keyword)
+            expressions.append(parse_expression())
+
+        if peek().text == "else":
+            consume("else")
+            expressions.append(parse_expression())
+        else:
+            expressions.append(None)
+
+        return ast.Conditional(
+            keyword="if",
+            left=expressions[0],
+            then=expressions[1],
+            else_=expressions[2]
+        )
 
     def parse_term() -> ast.Expression:
         left = parse_factor()
@@ -78,11 +107,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_parenthesized()
         elif peek().type == "int_literal":
             return parse_int_literal()
+        elif peek().type == "bool_literal":
+            return parse_bool_literal()
         elif peek().type == "identifier":
             return parse_identifier()
+        elif peek().type == "keyword":
+            return parse_conditional()
         else:
             raise Exception(
-                f"{peek().loc}: expected an integer literal or an identifier")
+                f"{peek().loc}: expected an integer literal, identifier or a keyword")
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")
@@ -95,12 +128,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         while peek().type != "end":
             expression = parse_expression()
-
-            if not isinstance(expression, ast.BinaryOp):
-                raise Exception(
-                    "incorrect expression."
-                )
-
             expressions.append(expression)
 
         return expressions

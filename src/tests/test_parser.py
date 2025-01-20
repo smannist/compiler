@@ -1,17 +1,12 @@
 import compiler.ast as ast
 from compiler.parser import parse
-from compiler.tokenizer import Token, Location
+from compiler.tokenizer import Token, Location, tokenize
 
 L = Location(0, 0)
 
 
 def test_parse_simple_expression() -> None:
-    tokens = [
-        Token(loc=L, type="identifier", text="a"),
-        Token(loc=L, type="binary_op", text="+"),
-        Token(loc=L, type="identifier", text="b")
-    ]
-
+    tokens = tokenize("a + b")
     assert parse(tokens) == [
         ast.BinaryOp(
             left=ast.Identifier(
@@ -23,14 +18,7 @@ def test_parse_simple_expression() -> None:
     ]
 
 def test_parse_longer_expression() -> None:
-    tokens = [
-        Token(loc=L, type="identifier", text="a"),
-        Token(loc=L, type="binary_op", text="+"),
-        Token(loc=L, type="identifier", text="b"),
-        Token(loc=L, type="identifier", text="-"),
-        Token(loc=L, type="identifier", text="c")
-    ]
-
+    tokens = tokenize("a + b - c")
     assert parse(tokens) == [
         ast.BinaryOp(
             left=ast.BinaryOp(
@@ -43,17 +31,82 @@ def test_parse_longer_expression() -> None:
         )
 ]
 
-def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
-    tokens = [
-        Token(loc=L, type="identifier", text="a"),
-        Token(loc=L, type="binary_op", text="+"),
-        Token(loc=L, type="identifier", text="b"),
-        Token(loc=L, type="binary_op", text="+")
+def test_parse_conditional_expression() -> None:
+    tokens = tokenize("if a then b + c else x * y")
+    assert parse(tokens) == [
+        ast.Conditional(
+            keyword="if",
+            left=ast.Identifier(name="a"),
+            then=ast.BinaryOp(
+                left=ast.Identifier(name="b"),
+                op="+",
+                right=ast.Identifier(name="c"),
+            ),
+            else_=ast.BinaryOp(
+                left=ast.Identifier(name="x"),
+                op="*",
+                right=ast.Identifier(name="y"),
+            ),
+        )
     ]
+
+def test_parse_conditional_expression_without_else() -> None:
+    tokens = tokenize("if a then b + c")
+    assert parse(tokens) == [
+        ast.Conditional(
+            keyword="if",
+            left=ast.Identifier(name="a"),
+            then=ast.BinaryOp(
+                left=ast.Identifier(name="b"),
+                op="+",
+                right=ast.Identifier(name="c"),
+            ),
+            else_=None
+        )
+    ]
+
+def test_parse_conditional_expression_as_part_of_other_expressions() -> None:
+    tokens = tokenize("1 + if true then 2 else 3")
+    assert parse(tokens) == [
+        ast.BinaryOp(
+            left=ast.Literal(value=1),
+            op='+',
+            right=ast.Conditional(
+                keyword='if',
+                left=ast.Literal(value=True),
+                then=ast.Literal(value=2),
+                else_=ast.Literal(value=3)
+            )
+        )
+    ]
+
+def test_nested_if_statements() -> None:
+    tokens = tokenize("if true then if false then 1 else 2 else if true then 3 else 4")
+    assert parse(tokens) == [
+        ast.Conditional(
+            keyword="if",
+            left=ast.Literal(value=True),
+            then=ast.Conditional(
+                keyword="if",
+                left=ast.Literal(value=False),
+                then=ast.Literal(value=1),
+                else_=ast.Literal(value=2),
+            ),
+            else_=ast.Conditional(
+                keyword="if",
+                left=ast.Literal(value=True),
+                then=ast.Literal(value=3),
+                else_=ast.Literal(value=4),
+            ),
+        )
+    ]
+
+def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
+    tokens = tokenize("a + b +")
     try:
         parse(tokens)
     except Exception as e:
-        assert str(e) == f"{L.__str__()}: expected an integer literal or an identifier"
+        assert str(e) == f"L(line=1, column=7): expected an integer literal, identifier or a keyword"
     else:
         assert False, "Expected Exception was not raised"
 
@@ -67,16 +120,10 @@ def test_empty_token_list_raises_an_error() -> None:
         assert False, "Expected Exception was not raised"
 
 def test_incorrect_source_code_raises_and_error() -> None:
-    tokens = [
-        Token(loc=L, type="identifier", text="a"),
-        Token(loc=L, type="binary_op", text="+"),
-        Token(loc=L, type="identifier", text="b"),
-        Token(loc=L, type="identifier", text="c"),
-        Token(loc=L, type="identifier", text="r")
-    ]
+    tokens = tokenize("a+b c r")
     try:
         parse(tokens)
     except Exception as e:
-        assert str(e) == "incorrect expression."
+        assert str(e) == "L(line=1, column=5): incorrect expression: identifier should be followed by a binary operator or a statement."
     else:
         assert False, "Expected Exception was not raised"
