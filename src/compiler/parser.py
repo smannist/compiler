@@ -3,6 +3,11 @@ from compiler.tokenizer import Token
 
 
 def parse(tokens: list[Token]) -> ast.Expression:
+    if not tokens:
+        raise Exception(
+            "token list must not be empty."
+        )
+
     pos = 0
 
     def peek() -> Token:
@@ -18,6 +23,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def consume(expected: str | list[str] | None = None) -> Token:
         nonlocal pos
         token = peek()
+        print(token)
         if isinstance(expected, str) and token.text != expected:
             raise Exception(f"{token.loc}: expected '{expected}'")
         if isinstance(expected, list) and token.text not in expected:
