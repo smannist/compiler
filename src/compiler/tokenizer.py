@@ -54,7 +54,7 @@ def tokenize(source_code: str) -> list[Token]:
 
         if token_type == "newline" or token_type == "comment":
             line += 1
-            column = 0
+            column = 1
             continue
         elif token_type == "whitespace":
             column += len(value)
