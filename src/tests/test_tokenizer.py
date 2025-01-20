@@ -1,4 +1,6 @@
-from compiler.tokenizer import tokenize, Token, L
+from compiler.tokenizer import tokenize, Token, Location
+
+L = Location(0,0)
 
 def test_tokenizer_passes_white_space() -> None:
     assert tokenize("   x   ") == [

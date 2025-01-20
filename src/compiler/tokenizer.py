@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class L:
+class Location:
     line: int
     column: int
 
@@ -11,12 +11,12 @@ class L:
         return f"L(line={self.line}, column={self.column})"
 
     def __eq__(self, class_to_compare: object) -> bool:
-        return class_to_compare is L
+        return isinstance(class_to_compare, Location)
 
 
 @dataclass(frozen=True)
 class Token:
-    loc: L
+    loc: Location
     type: str | None
     text: str
 
@@ -64,7 +64,7 @@ def tokenize(source_code: str) -> list[Token]:
                 f"Caught unexpected value: '{value}' at position ({line},{column})."
             )
 
-        tokens.append(Token(L(line, column), token_type, value))
+        tokens.append(Token(Location(line, column), token_type, value))
 
         column += len(value)
 
