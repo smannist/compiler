@@ -13,8 +13,8 @@ def test_expression_parsed_correctly():
     ]
 
     assert parse(tokens) == ast.BinaryOp(
-        left=ast.Literal(
-            value='a'),
-        op='+',
-        right=ast.Literal(
-            value='b'))
+        left=ast.Identifier(
+            name="a"),
+        op="+",
+        right=ast.Identifier(
+            name="b"))
