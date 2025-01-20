@@ -36,7 +36,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         if peek().type != "identifier":
             raise Exception(f"{peek().loc}: expected an identifier")
         token = consume()
-        return ast.Identifier(str(token.text))
+        return ast.Identifier(token.text)
 
     def parse_term() -> ast.Expression:
         left = parse_factor()
