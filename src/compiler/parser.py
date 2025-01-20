@@ -16,6 +16,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             )
 
     def consume(expected: str | list[str] | None = None) -> Token:
+        nonlocal pos
         token = peek()
         if isinstance(expected, str) and token.text != expected:
             raise Exception(f"{token.loc}: expected '{expected}'")
