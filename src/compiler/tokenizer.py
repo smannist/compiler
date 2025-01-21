@@ -29,7 +29,7 @@ TOKEN_PATTERNS = {
     "int_literal": r'\b[0-9]+\b',
     "bool_literal": r'\b(true|false)\b',
     "unary_op": r'\bnot\b',
-    "binary_op": r'!=|==|<=|>=|<|>|\%=?|\+=?|\/=?|\*=?|\-=?|\=(?!\d)',
+    "binary_op": r'and|or|!=|==|<=|>=|<|>|\%=?|\+=?|\/=?|\*=?|\-=?|\=(?!\d)',
     "keyword": r'\bvar|while|if|else|then|do\b',
     "punctuation": r'[(),;{}:]',
     "newline": r'\n',

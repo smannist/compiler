@@ -8,7 +8,7 @@ LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
     ["==", "!="],
     ["<", "<=", ">", ">="],
     ["+", "-"],
-    ["*", "/"],
+    ["*", "/", "%"]
 ]
 
 MAX_PRECEDENCE_LEVEL = len(LEFT_ASSOCIATIVE_BINARY_OPERATORS) - 1
