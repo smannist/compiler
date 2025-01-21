@@ -31,12 +31,11 @@ def test_parse_longer_expression() -> None:
         )
 ]
 
-def test_parse_conditional_expression() -> None:
+def test_parse_if_expression() -> None:
     tokens = tokenize("if a then b + c else x * y")
     assert parse(tokens) == [
-        ast.Conditional(
-            keyword="if",
-            left=ast.Identifier(name="a"),
+        ast.IfExpr(
+            if_=ast.Identifier(name="a"),
             then=ast.BinaryOp(
                 left=ast.Identifier(name="b"),
                 op="+",
@@ -50,12 +49,11 @@ def test_parse_conditional_expression() -> None:
         )
     ]
 
-def test_parse_conditional_expression_without_else() -> None:
+def test_parse_if_expression_without_else() -> None:
     tokens = tokenize("if a then b + c")
     assert parse(tokens) == [
-        ast.Conditional(
-            keyword="if",
-            left=ast.Identifier(name="a"),
+        ast.IfExpr(
+            if_=ast.Identifier(name="a"),
             then=ast.BinaryOp(
                 left=ast.Identifier(name="b"),
                 op="+",
@@ -65,15 +63,14 @@ def test_parse_conditional_expression_without_else() -> None:
         )
     ]
 
-def test_parse_conditional_expression_as_part_of_other_expressions() -> None:
+def test_parse_if_expression_as_part_of_other_expressions() -> None:
     tokens = tokenize("1 + if true then 2 else 3")
     assert parse(tokens) == [
         ast.BinaryOp(
             left=ast.Literal(value=1),
-            op='+',
-            right=ast.Conditional(
-                keyword='if',
-                left=ast.Literal(value=True),
+            op="+",
+            right=ast.IfExpr(
+                if_=ast.Literal(value=True),
                 then=ast.Literal(value=2),
                 else_=ast.Literal(value=3)
             )
@@ -83,18 +80,15 @@ def test_parse_conditional_expression_as_part_of_other_expressions() -> None:
 def test_nested_if_statements() -> None:
     tokens = tokenize("if true then if false then 1 else 2 else if true then 3 else 4")
     assert parse(tokens) == [
-        ast.Conditional(
-            keyword="if",
-            left=ast.Literal(value=True),
-            then=ast.Conditional(
-                keyword="if",
-                left=ast.Literal(value=False),
+        ast.IfExpr(
+            if_=ast.Literal(value=True),
+            then=ast.IfExpr(
+                if_=ast.Literal(value=False),
                 then=ast.Literal(value=1),
                 else_=ast.Literal(value=2),
             ),
-            else_=ast.Conditional(
-                keyword="if",
-                left=ast.Literal(value=True),
+            else_=ast.IfExpr(
+                if_=ast.Literal(value=True),
                 then=ast.Literal(value=3),
                 else_=ast.Literal(value=4),
             ),

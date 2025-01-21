@@ -51,7 +51,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         token = consume()
         return ast.Identifier(token.text)
 
-    def parse_conditional() -> ast.Conditional:
+    def parse_if_expr() -> ast.IfExpr:
         required_keywords = ["if", "then"]
         expressions = []
 
@@ -65,9 +65,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
         else:
             expressions.append(None)
 
-        return ast.Conditional(
-            keyword="if",
-            left=expressions[0],
+        return ast.IfExpr(
+            if_=expressions[0],
             then=expressions[1],
             else_=expressions[2]
         )
@@ -112,7 +111,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         elif peek().type == "identifier":
             return parse_identifier()
         elif peek().type == "keyword":
-            return parse_conditional()
+            return parse_if_expr()
         else:
             raise Exception(
                 f"{peek().loc}: expected an integer literal, identifier or a keyword")

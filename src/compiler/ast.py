@@ -28,9 +28,8 @@ class BinaryOp(Expression):
 
 
 @dataclass
-class Conditional(Expression):
+class IfExpr(Expression):
     """AST node which represents a 'if-then-else' statement"""
-    keyword: str
-    left: Expression
+    if_: Expression
     then: Expression
     else_: Optional[Expression]
