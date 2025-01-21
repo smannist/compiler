@@ -103,16 +103,16 @@ def parse(tokens: list[Token]) -> ast.Expression:
         )
 
     def parse_expression(
-            precedence_level: int = MAX_PRECEDENCE_LEVEL) -> ast.Expression:
-        if precedence_level == MIN_PRECEDENCE_LEVEL:
+            precedence_level: int = MIN_PRECEDENCE_LEVEL) -> ast.Expression:
+        if precedence_level > MAX_PRECEDENCE_LEVEL:
             return parse_factor()
 
-        left = parse_expression(precedence_level - 1)
+        left = parse_expression(precedence_level + 1)
 
         while peek(
         ).text in LEFT_ASSOCIATIVE_BINARY_OPERATORS[precedence_level]:
             op_token = consume()
-            right = parse_expression(precedence_level - 1)
+            right = parse_expression(precedence_level + 1)
             left = ast.BinaryOp(left, op_token.text, right)
 
         return left

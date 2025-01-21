@@ -1,17 +1,20 @@
 from compiler.tokenizer import tokenize, Token, Location
 
-L = Location(0,0)
+L = Location(0, 0)
+
 
 def test_tokenizer_passes_white_space() -> None:
     assert tokenize("   x   ") == [
         Token(loc=L, type="identifier", text="x"),
     ]
 
+
 def test_tokenizer_passes_comments() -> None:
     assert tokenize("// this is a a comment \n x # this is a also a comment \n y") == [
         Token(loc=L, type="identifier", text="x"),
         Token(loc=L, type="identifier", text="y")
     ]
+
 
 def test_tokenizer_passes_multiline_comments() -> None:
     source_code = """
@@ -25,6 +28,7 @@ def test_tokenizer_passes_multiline_comments() -> None:
         Token(loc=L, type="punctuation", text=";")
     ]
 
+
 def test_expression_without_whitespace_tokenized_correctly() -> None:
     assert tokenize("x+z-2-4") == [
         Token(loc=L, type="identifier", text="x"),
@@ -35,6 +39,7 @@ def test_expression_without_whitespace_tokenized_correctly() -> None:
         Token(loc=L, type="binary_op", text="-"),
         Token(loc=L, type="int_literal", text="4")
     ]
+
 
 def test_expression_with_whitespace_tokenized_correctly() -> None:
     assert tokenize("x + z - 2 - 4") == [
@@ -47,12 +52,14 @@ def test_expression_with_whitespace_tokenized_correctly() -> None:
         Token(loc=L, type="int_literal", text="4")
     ]
 
+
 def test_unary_operator_is_recognised() -> None:
     assert tokenize("x not 3") == [
         Token(loc=L, type="identifier", text="x"),
         Token(loc=L, type="unary_op", text="not"),
         Token(loc=L, type="int_literal", text="3")
     ]
+
 
 def test_boolean_literal_are_recognised() -> None:
     assert tokenize("true false false true") == [
@@ -62,14 +69,16 @@ def test_boolean_literal_are_recognised() -> None:
         Token(loc=L, type="bool_literal", text="true")
     ]
 
+
 def test_keywords_are_recognised():
-        assert tokenize("while var if else then") == [
+    assert tokenize("while var if else then") == [
         Token(loc=L, type="keyword", text="while"),
         Token(loc=L, type="keyword", text="var"),
         Token(loc=L, type="keyword", text="if"),
         Token(loc=L, type="keyword", text="else"),
         Token(loc=L, type="keyword", text="then")
     ]
+
 
 def test_punctuation_recognised():
     assert tokenize("{(),;{}:") == [
@@ -82,6 +91,7 @@ def test_punctuation_recognised():
         Token(loc=L, type="punctuation", text="}"),
         Token(loc=L, type="punctuation", text=":"),
     ]
+
 
 def test_complex_source_code_tokenization():
     source_code = """
@@ -150,6 +160,7 @@ def test_complex_source_code_tokenization():
         Token(loc=L, type="punctuation", text=";"),
         Token(loc=L, type="punctuation", text="}")
     ]
+
 
 def test_incorrect_source_code_raises_an_error() -> None:
     try:
