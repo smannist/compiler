@@ -23,7 +23,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def consume(expected: str | list[str] | None = None) -> Token:
         nonlocal pos
         token = peek()
-        if isinstance(expected, str) and token.text != expected and expected != "else":
+        if isinstance(expected, str) and token.text != expected:
             raise Exception(f"{token.loc}: expected '{expected}'")
         if isinstance(expected, list) and token.text not in expected:
             comma_separated = ", ".join([f'"{e}"' for e in expected])
@@ -46,10 +46,29 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
             raise Exception(f"{peek().loc}: expected an identifier")
-        if peek(offset=1).type == "identifier":
+        if check_next_type() == "identifier":
             raise Exception(f"{peek(offset=1).loc}: incorrect expression: identifier should be followed by a binary operator or a statement.")
         token = consume()
         return ast.Identifier(token.text)
+
+    def parse_func_expr() -> ast.FuncExpr:
+        token = consume()
+        consume("(")
+
+        arguments = []
+
+        if peek().text != ")":
+            arguments.append(parse_expression())
+            while peek().text == ",":
+                consume(",")
+                arguments.append(parse_expression())
+
+        consume(")")
+
+        return ast.FuncExpr(
+            ast.Identifier(token.text),
+            arguments
+        )
 
     def parse_if_expr() -> ast.IfExpr:
         required_keywords = ["if", "then"]
@@ -108,6 +127,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_int_literal()
         elif peek().type == "bool_literal":
             return parse_bool_literal()
+        elif peek().type == "identifier" and check_next_text() == "(":
+            return parse_func_expr()
         elif peek().type == "identifier":
             return parse_identifier()
         elif peek().type == "keyword":
@@ -130,5 +151,11 @@ def parse(tokens: list[Token]) -> ast.Expression:
             expressions.append(expression)
 
         return expressions
+
+    def check_next_text():
+        return peek(offset=1).text
+
+    def check_next_type():
+        return peek(offset=1).type
 
     return parse_source_code()

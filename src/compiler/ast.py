@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing_extensions import Optional
+from typing_extensions import Optional, List
 
 
 @dataclass
@@ -33,3 +33,10 @@ class IfExpr(Expression):
     if_: Expression
     then: Expression
     else_: Optional[Expression]
+
+
+@dataclass
+class FuncExpr(Expression):
+    """AST node which represent a function call"""
+    identifier: Identifier
+    arguments: List[Expression]

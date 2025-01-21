@@ -95,6 +95,22 @@ def test_nested_if_statements() -> None:
         )
     ]
 
+def test_parse_function_expr() -> None:
+    tokens = tokenize("f(x, y + z)")
+    assert parse(tokens) == [
+        ast.FuncExpr(
+            identifier=ast.Identifier(name="f"),
+            arguments=[
+                ast.Identifier(name="x"),
+                ast.BinaryOp(
+                    left=ast.Identifier(name="y"),
+                    op="+",
+                    right=ast.Identifier(name="z")
+                )
+            ]
+        )
+    ]
+
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
     tokens = tokenize("a + b +")
     try:
