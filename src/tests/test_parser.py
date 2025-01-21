@@ -5,13 +5,25 @@ from compiler.tokenizer import Token, Location, tokenize
 L = Location(0, 0)
 
 
-def test_parse_simple_expression() -> None:
+def test_parse_plus_expression() -> None:
     tokens = tokenize("a + b")
     assert parse(tokens) == [
         ast.BinaryOp(
             left=ast.Identifier(
                 name="a"),
             op="+",
+            right=ast.Identifier(
+                name="b")
+        )
+    ]
+
+def test_parse_greater_than_expression() -> None:
+    tokens = tokenize("a > b")
+    assert parse(tokens) == [
+        ast.BinaryOp(
+            left=ast.Identifier(
+                name="a"),
+            op=">",
             right=ast.Identifier(
                 name="b")
         )

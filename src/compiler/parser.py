@@ -1,6 +1,19 @@
 import compiler.ast as ast
 from compiler.tokenizer import Token
 
+# bottom level has highest precedence
+LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
+    ["or"],
+    ["and"],
+    ["==", "!="],
+    ["<", "<=", ">", ">="],
+    ["+", "-"],
+    ["*", "/"],
+]
+
+MAX_PRECEDENCE_LEVEL = len(LEFT_ASSOCIATIVE_BINARY_OPERATORS) - 1
+MIN_PRECEDENCE_LEVEL = 0
+
 
 def parse(tokens: list[Token]) -> ast.Expression:
     if not tokens:
@@ -15,10 +28,10 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return tokens[pos + offset]
 
         return Token(
-                loc=tokens[-1].loc,
-                type="end",
-                text="",
-            )
+            loc=tokens[-1].loc,
+            type="end",
+            text="",
+        )
 
     def consume(expected: str | list[str] | None = None) -> Token:
         nonlocal pos
@@ -46,8 +59,11 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
             raise Exception(f"{peek().loc}: expected an identifier")
-        if check_next_type() == "identifier":
-            raise Exception(f"{peek(offset=1).loc}: incorrect expression: identifier should be followed by a binary operator or a statement.")
+        if proceeding_type() == "identifier":
+            raise Exception(
+                f"{peek(offset=1).loc}: incorrect expression: "
+                "identifier should be followed by a binary operator or a statement."
+            )
         token = consume()
         return ast.Identifier(token.text)
 
@@ -90,33 +106,18 @@ def parse(tokens: list[Token]) -> ast.Expression:
             else_=expressions[2]
         )
 
-    def parse_term() -> ast.Expression:
-        left = parse_factor()
+    def parse_expression(
+            precedence_level: int = MAX_PRECEDENCE_LEVEL) -> ast.Expression:
+        if precedence_level == MIN_PRECEDENCE_LEVEL:
+            return parse_factor()
 
-        while peek().text in ["*", "/"]:
-            operator_token = consume()
-            operator = operator_token.text
-            right = parse_factor()
-            left = ast.BinaryOp(
-                left,
-                operator,
-                right
-            )
+        left = parse_expression(precedence_level - 1)
 
-        return left
-
-    def parse_expression() -> ast.Expression:
-        left = parse_term()
-
-        while peek().text in ["+", "-"]:
-            operator_token = consume()
-            operator = operator_token.text
-            right = parse_term()
-            left = ast.BinaryOp(
-                left,
-                operator,
-                right
-            )
+        while peek(
+        ).text in LEFT_ASSOCIATIVE_BINARY_OPERATORS[precedence_level]:
+            op_token = consume()
+            right = parse_expression(precedence_level - 1)
+            left = ast.BinaryOp(left, op_token.text, right)
 
         return left
 
@@ -127,7 +128,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_int_literal()
         elif peek().type == "bool_literal":
             return parse_bool_literal()
-        elif peek().type == "identifier" and check_next_text() == "(":
+        elif peek().type == "identifier" and proceeding_text() == "(":
             return parse_func_expr()
         elif peek().type == "identifier":
             return parse_identifier()
@@ -147,15 +148,14 @@ def parse(tokens: list[Token]) -> ast.Expression:
         expressions = []
 
         while peek().type != "end":
-            expression = parse_expression()
-            expressions.append(expression)
+            expressions.append(parse_expression())
 
         return expressions
 
-    def check_next_text():
+    def proceeding_text() -> str:
         return peek(offset=1).text
 
-    def check_next_type():
+    def proceeding_type() -> str:
         return peek(offset=1).type
 
     return parse_source_code()
