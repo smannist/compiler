@@ -44,17 +44,13 @@ def parse(tokens: list[Token]) -> ast.Expression:
         pos += 1
         return token
 
-    def parse_int_literal() -> ast.Literal:
-        if peek().type != "int_literal":
-            raise Exception(f"{peek().loc}: expected an integer literal")
+    def parse_literal() -> ast.Literal:
         token = consume()
-        return ast.Literal(int(token.text))
-
-    def parse_bool_literal() -> ast.Literal:
-        if peek().type != "bool_literal":
-            raise Exception(f"{peek().loc}: expected bool literal")
-        token = consume()
-        return ast.Literal(True if token.text == "true" else False)
+        if token.type == "int_literal":
+            return ast.Literal(int(token.text))
+        elif token.type == "bool_literal":
+            return ast.Literal(True if token.text == "true" else False)
+        raise Exception(f"{peek().loc}: expected an integer or boolean literal")
 
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
@@ -124,10 +120,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_factor() -> ast.Expression:
         if peek().text == "(":
             return parse_parenthesized()
-        elif peek().type == "int_literal":
-            return parse_int_literal()
-        elif peek().type == "bool_literal":
-            return parse_bool_literal()
+        elif peek().type == "int_literal" or peek().type == "bool_literal":
+            return parse_literal()
         elif peek().type == "identifier" and proceeding_text() == "(":
             return parse_func_expr()
         elif peek().type == "identifier":
