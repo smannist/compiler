@@ -2,7 +2,8 @@ import compiler.ast as ast
 from compiler.tokenizer import Token
 
 # bottom level has highest precedence
-LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
+BINARY_OPERATORS = [
+    ["="],
     ["or"],
     ["and"],
     ["==", "!="],
@@ -10,10 +11,8 @@ LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
     ["+", "-"],
     ["*", "/", "%"]
 ]
-
 UNARY_OPERATORS = ["-", "not"]
-
-MAX_PRECEDENCE_LEVEL = len(LEFT_ASSOCIATIVE_BINARY_OPERATORS) - 1
+MAX_PRECEDENCE_LEVEL = len(BINARY_OPERATORS) - 1
 MIN_PRECEDENCE_LEVEL = 0
 
 
@@ -106,9 +105,9 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
     def parse_unary_op() -> ast.UnaryOp:
         if peek().text in UNARY_OPERATORS:
-            op = consume().text
+            token = consume()
             operand = parse_expression()
-            return ast.UnaryOp(op, operand)
+            return ast.UnaryOp(token.text, operand)
         raise ParsingException(f"{peek().loc}: expected unary operator")
 
     def parse_expression(
@@ -119,10 +118,10 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         left = parse_expression(precedence_level + 1)
 
         while peek(
-        ).text in LEFT_ASSOCIATIVE_BINARY_OPERATORS[precedence_level]:
-            op_token = consume()
-            right = parse_expression(precedence_level + 1)
-            left = ast.BinaryOp(left, op_token.text, right)
+        ).text in BINARY_OPERATORS[precedence_level]:
+            op = consume().text
+            right = parse_expression(precedence_level if op == "=" else precedence_level + 1) # treat "=" as right associative
+            left = ast.BinaryOp(left, op, right)
 
         return left
 

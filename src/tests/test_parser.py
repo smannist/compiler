@@ -193,8 +193,7 @@ def test_parse_unary_minus_expression() -> None:
 
 def test_parse_unary_minus_with_parentheses() -> None:
     tokens = tokenize("if -(x+1) then y")
-    result = parse(tokens)
-    expected = [
+    assert parse(tokens) == [
         ast.IfExpr(
             condition=ast.UnaryOp(
                 op="-",
@@ -208,7 +207,25 @@ def test_parse_unary_minus_with_parentheses() -> None:
             else_=None
         )
     ]
-    assert result == expected
+
+
+def test_parse_assignment_op_right_asso() -> None:
+    tokens = tokenize("if x = y+z then z")
+    assert parse(tokens) == [
+        ast.IfExpr(
+            condition=ast.BinaryOp(
+                left=ast.Identifier(name="x"),
+                op="=",
+                right=ast.BinaryOp(
+                    left=ast.Identifier(name="y"),
+                    op="+",
+                    right=ast.Identifier(name="z")
+                )
+            ),
+            then=ast.Identifier(name="z"),
+            else_=None
+        )
+    ]
 
 
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
