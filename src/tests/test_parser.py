@@ -211,7 +211,6 @@ def test_parse_unary_minus_with_parentheses() -> None:
 
 def test_parse_unary_chaining_not_operators() -> None:
     tokens = tokenize("not not x")
-    print(parse(tokens))
     assert parse(tokens) == [
         ast.UnaryOp(
             op="not",
@@ -225,7 +224,6 @@ def test_parse_unary_chaining_not_operators() -> None:
 
 def test_parse_unary_chaining_minus_operators() -> None:
     tokens = tokenize("--x")
-    print(parse(tokens))
     assert parse(tokens) == [
         ast.UnaryOp(
             op="-",
