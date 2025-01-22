@@ -17,11 +17,6 @@ MIN_PRECEDENCE_LEVEL = 0
 
 
 def parse(tokens: list[Token]) -> list[ast.Expression]:
-    if not tokens:
-        raise Exception(
-            "token list must not be empty."
-        )
-
     pos = 0
 
     def peek() -> Token:
@@ -136,6 +131,11 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         return expr
 
     def parse_source_code() -> list[ast.Expression]:
+        if not tokens:
+            raise Exception(
+                "token list must not be empty."
+            )
+
         expressions = []
         while peek().type != "end":
             expressions.append(parse_expression())
