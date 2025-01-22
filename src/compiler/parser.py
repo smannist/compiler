@@ -15,6 +15,12 @@ LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
 MAX_PRECEDENCE_LEVEL = len(LEFT_ASSOCIATIVE_BINARY_OPERATORS) - 1
 MIN_PRECEDENCE_LEVEL = 0
 
+class ParsingException(Exception):
+    pass
+
+class EmptyListExpection(Exception):
+    pass
+
 
 def parse(tokens: list[Token]) -> list[ast.Expression]:
     pos = 0
@@ -33,10 +39,10 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         nonlocal pos
         token = peek()
         if isinstance(expected, str) and token.text != expected:
-            raise Exception(f"{token.loc}: expected '{expected}'")
+            raise ParsingException(f"{token.loc}: expected '{expected}'")
         if isinstance(expected, list) and token.text not in expected:
             comma_separated = ", ".join([f'"{e}"' for e in expected])
-            raise Exception(f"{token.loc}: expected one of: {comma_separated}")
+            raise ParsingException(f"{token.loc}: expected one of: {comma_separated}")
         pos += 1
         return token
 
@@ -46,17 +52,17 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
             return ast.Literal(int(token.text))
         elif token.type == "bool_literal":
             return ast.Literal(True if token.text == "true" else False)
-        raise Exception(
+        raise ParsingException(
             f"{peek().loc}: expected an integer or boolean literal")
 
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
-            raise Exception(f"{peek().loc}: expected an identifier")
+            raise ParsingException(f"{peek().loc}: expected an identifier")
 
         token = consume()
 
         if pos < len(tokens) and tokens[pos].type == "identifier":
-            raise Exception(
+            raise ParsingException(
                 f"{peek().loc}: incorrect expression: "
                 "identifier should be followed by a binary operator or a statement."
             )
@@ -121,7 +127,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         elif peek().type == "keyword":
             return parse_if_expr()
         else:
-            raise Exception(
+            raise ParsingException(
                 f"{peek().loc}: expected an integer literal or an identifier")
 
     def parse_parenthesized() -> ast.Expression:
@@ -132,7 +138,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
     def parse_source_code() -> list[ast.Expression]:
         if not tokens:
-            raise Exception(
+            raise EmptyListExpection(
                 "token list must not be empty."
             )
 
