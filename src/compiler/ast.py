@@ -32,7 +32,7 @@ class IfExpr(Expression):
     """AST node which represents a 'if-then-else' statement"""
     if_: Expression
     then: Expression
-    else_: Optional[Expression]
+    else_: Optional[Expression] = None
 
 
 @dataclass

@@ -70,7 +70,7 @@ def test_boolean_literal_are_recognised() -> None:
     ]
 
 
-def test_keywords_are_recognised():
+def test_keywords_are_recognised() -> None:
     assert tokenize("while var if else then") == [
         Token(loc=L, type="keyword", text="while"),
         Token(loc=L, type="keyword", text="var"),
@@ -80,7 +80,7 @@ def test_keywords_are_recognised():
     ]
 
 
-def test_punctuation_recognised():
+def test_punctuation_recognised() -> None:
     assert tokenize("{(),;{}:") == [
         Token(loc=L, type="punctuation", text="{"),
         Token(loc=L, type="punctuation", text="("),
@@ -93,7 +93,7 @@ def test_punctuation_recognised():
     ]
 
 
-def test_complex_source_code_tokenization():
+def test_complex_source_code_tokenization() -> None:
     source_code = """
     var n: Int = read_int();
     print_int(n);

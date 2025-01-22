@@ -157,7 +157,7 @@ def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
 
 
 def test_empty_token_list_raises_an_error() -> None:
-    tokens = []
+    tokens: list = []
     try:
         parse(tokens)
     except Exception as e:

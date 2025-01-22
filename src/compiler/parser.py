@@ -1,5 +1,6 @@
 import compiler.ast as ast
 from compiler.tokenizer import Token
+from typing_extensions import Optional
 
 # bottom level has highest precedence
 LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
@@ -15,7 +16,7 @@ MAX_PRECEDENCE_LEVEL = len(LEFT_ASSOCIATIVE_BINARY_OPERATORS) - 1
 MIN_PRECEDENCE_LEVEL = 0
 
 
-def parse(tokens: list[Token]) -> ast.Expression:
+def parse(tokens: list[Token]) -> list[ast.Expression]:
     if not tokens:
         raise Exception(
             "token list must not be empty."
@@ -50,7 +51,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return ast.Literal(int(token.text))
         elif token.type == "bool_literal":
             return ast.Literal(True if token.text == "true" else False)
-        raise Exception(f"{peek().loc}: expected an integer or boolean literal")
+        raise Exception(
+            f"{peek().loc}: expected an integer or boolean literal")
 
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
@@ -63,7 +65,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 f"{peek().loc}: incorrect expression: "
                 "identifier should be followed by a binary operator or a statement."
             )
-    
+
         return ast.Identifier(token.text)
 
     def parse_func_expr() -> ast.FuncExpr:
@@ -86,23 +88,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
         )
 
     def parse_if_expr() -> ast.IfExpr:
-        required_keywords = ["if", "then"]
-        expressions = []
-
-        for keyword in required_keywords:
-            consume(keyword)
-            expressions.append(parse_expression())
-
-        if peek().text == "else":
-            consume("else")
-            expressions.append(parse_expression())
-        else:
-            expressions.append(None)
-
+        consume("if")
+        if_expr = parse_expression()
+        consume("then")
+        then_expr = parse_expression()
+        else_expr = parse_expression() if peek().text == "else" and consume("else") else None
         return ast.IfExpr(
-            if_=expressions[0],
-            then=expressions[1],
-            else_=expressions[2]
+            if_=if_expr,
+            then=then_expr,
+            else_=else_expr
         )
 
     def parse_expression(
@@ -141,7 +135,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume(")")
         return expr
 
-    def parse_source_code() -> ast.Expression:
+    def parse_source_code() -> list[ast.Expression]:
         expressions = []
         while peek().type != "end":
             expressions.append(parse_expression())
