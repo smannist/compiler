@@ -112,7 +112,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
     def parse_factor() -> ast.Expression:
         if peek().text == "(":
             return parse_parenthesized()
-        elif peek().type == "int_literal" or peek().type == "bool_literal":
+        elif peek().type in ["int_literal", "bool_literal"]:
             return parse_literal()
         elif peek().type == "identifier":
             if pos + 1 < len(tokens) and tokens[pos + 1].text == "(":
