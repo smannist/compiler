@@ -1,6 +1,5 @@
 import compiler.ast as ast
 from compiler.tokenizer import Token
-from typing_extensions import Optional
 
 # bottom level has highest precedence
 LEFT_ASSOCIATIVE_BINARY_OPERATORS = [

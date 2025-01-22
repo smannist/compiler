@@ -176,6 +176,7 @@ def test_incorrect_source_code_multiliteral_raises_and_error() -> None:
     else:
         assert False, "Expected Exception was not raised"
 
+
 def test_incorrect_source_code_multiop_raises_and_error() -> None:
     tokens = tokenize("a+b + + +")
     try:
