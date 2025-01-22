@@ -110,7 +110,7 @@ def test_complex_source_code_tokenization() -> None:
         Token(loc=L, type="keyword", text="var"),
         Token(loc=L, type="identifier", text="n"),
         Token(loc=L, type="punctuation", text=":"),
-        Token(loc=L, type="identifier", text="Int"),
+        Token(loc=L, type="keyword", text="Int"),
         Token(loc=L, type="binary_op", text="="),
         Token(loc=L, type="identifier", text="read_int"),
         Token(loc=L, type="punctuation", text="("),

@@ -30,13 +30,14 @@ TOKEN_PATTERNS = {
     "bool_literal": r'\b(true|false)\b',
     "unary_op": r'\bnot\b',
     "binary_op": r'and|or|!=|==|<=|>=|<|>|\%=?|\+=?|\/=?|\*=?|\-=?|\=(?!\d)',
-    "keyword": r'\bvar|while|if|else|then|do\b',
+    "keyword": r'\bvar|while|if|else|then|do|Int\b',
     "punctuation": r'[(),;{}:]',
     "newline": r'\n',
     "whitespace": r'[ \t]+',
     "identifier": r'_?[A-Za-z_]+[a-zA-Z0-9_]*',
     "except": r'.',
 }
+
 
 def tokenize(source_code: str) -> list[Token]:
     tokens = []
@@ -45,8 +46,9 @@ def tokenize(source_code: str) -> list[Token]:
     column = 1
 
     pattern = regex.compile(
-        "|".join(f"(?P<{token_type}>{pattern})" for token_type, pattern in TOKEN_PATTERNS.items())
-    )
+        "|".join(
+            f"(?P<{token_type}>{pattern})" for token_type,
+            pattern in TOKEN_PATTERNS.items()))
 
     for match in regex.finditer(pattern, source_code):
         token_type = match.lastgroup
@@ -61,8 +63,7 @@ def tokenize(source_code: str) -> list[Token]:
             continue
         elif token_type == "except":
             raise RuntimeError(
-                f"Caught unexpected value: '{value}' at position ({line},{column})."
-            )
+                f"Caught unexpected value: '{value}' at position ({line},{column}).")
 
         tokens.append(Token(Location(line, column), token_type, value))
 

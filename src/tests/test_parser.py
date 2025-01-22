@@ -88,7 +88,7 @@ def test_parse_if_expression_without_else() -> None:
                 op="+",
                 right=ast.Identifier(name="c"),
             ),
-            else_=None
+            else_=ast.Literal(value=None),
         )
     ]
 
@@ -168,7 +168,7 @@ def test_parse_unary_not_expression() -> None:
                 op="+",
                 right=ast.Identifier("z")
             ),
-            else_=None,
+            else_=ast.Literal(value=None),
         )
     ]
 
@@ -186,7 +186,7 @@ def test_parse_unary_minus_expression() -> None:
                 op="+",
                 right=ast.Identifier("z")
             ),
-            else_=None,
+            else_=ast.Literal(value=None),
         )
     ]
 
@@ -204,7 +204,7 @@ def test_parse_unary_minus_with_parentheses() -> None:
                 )
             ),
             then=ast.Identifier(name="y"),
-            else_=None
+            else_=ast.Literal(value=None)
         )
     ]
 
@@ -215,9 +215,9 @@ def test_parse_unary_chaining_not_operators() -> None:
         ast.UnaryOp(
             op="not",
             operand=ast.UnaryOp(
-            op="not",
-            operand=ast.Identifier("x")
-        )
+                op="not",
+                operand=ast.Identifier("x")
+            )
         )
     ]
 
@@ -228,9 +228,9 @@ def test_parse_unary_chaining_minus_operators() -> None:
         ast.UnaryOp(
             op="-",
             operand=ast.UnaryOp(
-            op="-",
-            operand=ast.Identifier("x")
-        )
+                op="-",
+                operand=ast.Identifier("x")
+            )
         )
     ]
 
@@ -249,7 +249,7 @@ def test_parse_assignment_op_right_asso() -> None:
                 )
             ),
             then=ast.Identifier(name="z"),
-            else_=None
+            else_=ast.Literal(value=None)
         )
     ]
 
@@ -291,6 +291,73 @@ def test_parse_complex_and_or_expression() -> None:
                 op="and",
                 right=ast.Identifier(name="d")
             )
+        )
+    ]
+
+
+def test_parse_simple_statement_without_final_semicolon() -> None:
+    source_code = """{
+        f(a);
+        x = y;
+        f(x)
+    }
+    """
+    tokens = tokenize(source_code)
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.FuncExpr(
+                    identifier=ast.Identifier(name="f"),
+                    arguments=[
+                        ast.Identifier(name="a")
+                    ]
+                ),
+                ast.BinaryOp(
+                    left=ast.Identifier(name="x"),
+                    op="=",
+                    right=ast.Identifier(name="y")
+                )
+            ],
+            result=ast.FuncExpr(
+                identifier=ast.Identifier(name="f"),
+                arguments=[
+                    ast.Identifier(name="x")
+                ]
+            )
+        )
+    ]
+
+
+def test_parse_simple_statement_with_final_semicolon() -> None:
+    source_code = """{
+        f(a);
+        x = y;
+        f(x);
+    }
+    """
+    tokens = tokenize(source_code)
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.FuncExpr(
+                    identifier=ast.Identifier(name="f"),
+                    arguments=[
+                        ast.Identifier(name="a")
+                    ]
+                ),
+                ast.BinaryOp(
+                    left=ast.Identifier(name="x"),
+                    op="=",
+                    right=ast.Identifier(name="y")
+                ),
+                ast.FuncExpr(
+                    identifier=ast.Identifier(name="f"),
+                    arguments=[
+                        ast.Identifier(name="x")
+                    ]
+                )
+            ],
+            result=ast.Literal(value=None)
         )
     ]
 

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing_extensions import Optional, List
 
 
@@ -10,7 +10,7 @@ class Expression:
 @dataclass
 class Literal(Expression):
     """AST node which represents a literal integer or boolean value"""
-    value: int | bool
+    value: int | bool | None
 
 
 @dataclass
@@ -35,11 +35,20 @@ class UnaryOp(Expression):
 
 
 @dataclass
+class Statements(Expression):
+    """AST node which represents statements wrapped in curly brackets `{}`"""
+    expressions: List[Expression]
+    result: Optional[Expression] = field(
+        default_factory=lambda: Literal(value=None))
+
+
+@dataclass
 class IfExpr(Expression):
     """AST node which represents a 'if-then-else' statement"""
     condition: Expression
     then: Expression
-    else_: Optional[Expression] = None
+    else_: Optional[Expression] = field(
+        default_factory=lambda: Literal(value=None))
 
 
 @dataclass
@@ -47,3 +56,10 @@ class FuncExpr(Expression):
     """AST node which represent a function call"""
     identifier: Identifier
     arguments: List[Expression]
+
+
+@dataclass
+class WhileExpr(Expression):
+    """AST node which represents a while expression"""
+    condition: Expression
+    body: Statements

@@ -93,15 +93,16 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
     def parse_if_expr() -> ast.IfExpr:
         consume("if")
-        condition_expr = parse_expression()
+        condition = parse_expression()
         consume("then")
         then_expr = parse_expression()
-        else_expr = parse_expression() if peek().text == "else" and consume("else") else None
-        return ast.IfExpr(
-            condition_expr,
-            then_expr,
-            else_expr
-        )
+
+        if peek().text == "else":
+            consume("else")
+            else_expr = parse_expression()
+            return ast.IfExpr(condition, then_expr, else_expr)
+            
+        return ast.IfExpr(condition, then_expr)
 
     def parse_unary_op() -> ast.UnaryOp:
         if peek().text in UNARY_OPERATORS:
@@ -120,7 +121,8 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         while peek(
         ).text in BINARY_OPERATORS[precedence_level]:
             op = consume().text
-            right = parse_expression(precedence_level if op == "=" else precedence_level + 1) # treat "=" as right associative
+            right = parse_expression(
+                precedence_level if op == "=" else precedence_level + 1)  # treat "=" as right associative
             left = ast.BinaryOp(left, op, right)
 
         return left
@@ -128,6 +130,8 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
     def parse_factor() -> ast.Expression:
         if peek().text == "(":
             return parse_parenthesized()
+        if peek().text == "{":
+            return parse_statements()
         elif peek().type == "unary_op" or peek().text == "-" and is_unary():
             return parse_unary_op()
         elif peek().type in ["int_literal", "bool_literal"]:
@@ -147,6 +151,22 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         expr = parse_expression()
         consume(")")
         return expr
+
+    def parse_statements() -> ast.Statements:
+        consume("{")
+        expressions = []
+
+        while peek().text != "}":
+            expr = parse_expression()
+            if peek().text == ";":
+                expressions.append(expr)
+                consume(";")
+            else:
+                consume("}")
+                return ast.Statements(expressions=expressions, result=expr)
+
+        consume("}")
+        return ast.Statements(expressions=expressions)
 
     def parse_source_code() -> list[ast.Expression]:
         if not tokens:
