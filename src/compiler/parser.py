@@ -136,25 +136,28 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         return left
 
     def parse_factor() -> ast.Expression:
-        if peek().text == "(":
-            return parse_parenthesized()
-        if peek().text == "{":
-            return parse_statements()
-        elif peek().type == "unary_op" or peek().text == "-" and is_unary():
-            return parse_unary_op()
-        elif peek().type in ["int_literal", "bool_literal"]:
-            return parse_literal()
-        elif peek().type == "identifier":
-            if pos + 1 < len(tokens) and tokens[pos + 1].text == "(":
-                return parse_func_expr()
-            return parse_identifier()
-        elif peek().type == "keyword":
-            if peek().text == "if":
+        token = peek()
+        match token:
+            case Token(text="("):
+                return parse_parenthesized()
+            case Token(text="{"):
+                return parse_statements()
+            case Token(type="unary_op") | Token(text="-") if is_unary():
+                return parse_unary_op()
+            case Token(type="int_literal" | "bool_literal"):
+                return parse_literal()
+            case Token(type="identifier"):
+                if pos + 1 < len(tokens) and tokens[pos + 1].text == "(":
+                    return parse_func_expr()
+                return parse_identifier()
+            case Token(type="keyword", text="if"):
                 return parse_if_expr()
-            if peek().text == "while":
+            case Token(type="keyword", text="while"):
                 return parse_while_expr()
-        raise ParsingException(
-                f"{peek().loc}: expected an integer literal or an identifier")
+            case _:
+                raise ParsingException(
+                    f"{token.loc}: expected an integer literal or an identifier"
+                )
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")
@@ -183,7 +186,6 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
             raise EmptyListException(
                 "token list must not be empty."
             )
-
         expressions = []
         while peek().type != "end":
             expressions.append(parse_expression())
