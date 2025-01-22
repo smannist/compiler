@@ -23,9 +23,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     pos = 0
 
-    def peek(offset: int = 0) -> Token:
-        if pos + offset < len(tokens):
-            return tokens[pos + offset]
+    def peek() -> Token:
+        if pos < len(tokens):
+            return tokens[pos]
 
         return Token(
             loc=tokens[-1].loc,
@@ -55,12 +55,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_identifier() -> ast.Identifier:
         if peek().type != "identifier":
             raise Exception(f"{peek().loc}: expected an identifier")
-        if proceeding_type() == "identifier":
+
+        token = consume()
+
+        if pos < len(tokens) and tokens[pos].type == "identifier":
             raise Exception(
-                f"{peek(offset=1).loc}: incorrect expression: "
+                f"{peek().loc}: incorrect expression: "
                 "identifier should be followed by a binary operator or a statement."
             )
-        token = consume()
+    
         return ast.Identifier(token.text)
 
     def parse_func_expr() -> ast.FuncExpr:
@@ -122,9 +125,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_parenthesized()
         elif peek().type == "int_literal" or peek().type == "bool_literal":
             return parse_literal()
-        elif peek().type == "identifier" and proceeding_text() == "(":
-            return parse_func_expr()
         elif peek().type == "identifier":
+            if pos + 1 < len(tokens) and tokens[pos + 1].text == "(":
+                return parse_func_expr()
             return parse_identifier()
         elif peek().type == "keyword":
             return parse_if_expr()
@@ -140,16 +143,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     def parse_source_code() -> ast.Expression:
         expressions = []
-
         while peek().type != "end":
             expressions.append(parse_expression())
-
         return expressions
-
-    def proceeding_text() -> str:
-        return peek(offset=1).text
-
-    def proceeding_type() -> str:
-        return peek(offset=1).type
 
     return parse_source_code()
