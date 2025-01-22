@@ -153,8 +153,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
                 return parse_if_expr()
             if peek().text == "while":
                 return parse_while_expr()
-        else:
-            raise ParsingException(
+        raise ParsingException(
                 f"{peek().loc}: expected an integer literal or an identifier")
 
     def parse_parenthesized() -> ast.Expression:
