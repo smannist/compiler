@@ -17,5 +17,11 @@ jobs:
         run: pip install poetry
       - name: Install dependencies
         run: poetry install
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       - name: Run tests
         run: chmod +x ./check.sh && ./check.sh
