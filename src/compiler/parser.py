@@ -122,7 +122,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
             return parse_if_expr()
         else:
             raise Exception(
-                f"{peek().loc}: expected an integer literal, identifier or a keyword")
+                f"{peek().loc}: expected an integer literal or an identifier")
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")

@@ -151,7 +151,7 @@ def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
         parse(tokens)
     except Exception as e:
         assert str(
-            e) == f"L(line=1, column=7): expected an integer literal, identifier or a keyword"
+            e) == f"L(line=1, column=7): expected an integer literal or an identifier"
     else:
         assert False, "Expected Exception was not raised"
 
@@ -166,12 +166,22 @@ def test_empty_token_list_raises_an_error() -> None:
         assert False, "Expected Exception was not raised"
 
 
-def test_incorrect_source_code_raises_and_error() -> None:
+def test_incorrect_source_code_multiliteral_raises_and_error() -> None:
     tokens = tokenize("a+b c r")
     try:
         parse(tokens)
     except Exception as e:
         assert str(
             e) == "L(line=1, column=5): incorrect expression: identifier should be followed by a binary operator or a statement."
+    else:
+        assert False, "Expected Exception was not raised"
+
+def test_incorrect_source_code_multiop_raises_and_error() -> None:
+    tokens = tokenize("a+b + + +")
+    try:
+        parse(tokens)
+    except Exception as e:
+        assert str(
+            e) == "L(line=1, column=7): expected an integer literal or an identifier"
     else:
         assert False, "Expected Exception was not raised"
