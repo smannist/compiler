@@ -228,6 +228,47 @@ def test_parse_assignment_op_right_asso() -> None:
     ]
 
 
+def test_parse_or_expression() -> None:
+    tokens = tokenize("a or b")
+    assert parse(tokens) == [
+        ast.BinaryOp(
+            left=ast.Identifier(name="a"),
+            op="or",
+            right=ast.Identifier(name="b")
+        )
+    ]
+
+
+def test_parse_and_expression() -> None:
+    tokens = tokenize("a and b")
+    assert parse(tokens) == [
+        ast.BinaryOp(
+            left=ast.Identifier(name="a"),
+            op="and",
+            right=ast.Identifier(name="b")
+        )
+    ]
+
+
+def test_parse_complex_and_or_expression() -> None:
+    tokens = tokenize("a and b or c and d")
+    assert parse(tokens) == [
+        ast.BinaryOp(
+            left=ast.BinaryOp(
+                left=ast.Identifier(name="a"),
+                op="and",
+                right=ast.Identifier(name="b")
+            ),
+            op="or",
+            right=ast.BinaryOp(
+                left=ast.Identifier(name="c"),
+                op="and",
+                right=ast.Identifier(name="d")
+            )
+        )
+    ]
+
+
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
     tokens = tokenize("a + b +")
     try:
