@@ -104,6 +104,14 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
             
         return ast.IfExpr(condition, then_expr)
 
+    def parse_while_expr() -> ast.WhileExpr:
+        consume("while")
+        condition = parse_expression()
+        consume("do")
+        body = parse_statements()
+        consume(";")
+        return ast.WhileExpr(condition, body)
+
     def parse_unary_op() -> ast.UnaryOp:
         if peek().text in UNARY_OPERATORS:
             token = consume()
@@ -141,7 +149,10 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
                 return parse_func_expr()
             return parse_identifier()
         elif peek().type == "keyword":
-            return parse_if_expr()
+            if peek().text == "if":
+                return parse_if_expr()
+            if peek().text == "while":
+                return parse_while_expr()
         else:
             raise ParsingException(
                 f"{peek().loc}: expected an integer literal or an identifier")

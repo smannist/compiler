@@ -362,6 +362,39 @@ def test_parse_simple_statement_with_final_semicolon() -> None:
     ]
 
 
+def test_parse_simple_while_expr() -> None:
+    source_code = """while y > x do {
+        x = x + 1;
+    };
+    """
+    tokens = tokenize(source_code)
+    print(parse(tokens))
+    assert parse(tokens) == [
+        ast.WhileExpr(
+            condition=ast.BinaryOp(
+                left=ast.Identifier(name="y"),
+                op=">",
+                right=ast.Identifier(name="x")
+            ),
+            body=ast.Statements(
+                expressions=[
+                    ast.BinaryOp(
+                        left=ast.Identifier(name="x"),
+                        op="=",
+                        right=ast.BinaryOp(
+                            left=ast.Identifier(name="x"),
+                            op="+",
+                            right=ast.Literal(value=1)
+                        )
+                    )
+                ],
+                result=ast.Literal(value=None)
+            ),
+            result=ast.Literal(value=None)
+        )
+    ]
+
+
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
     tokens = tokenize("a + b +")
     try:
