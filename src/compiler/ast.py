@@ -26,11 +26,16 @@ class BinaryOp(Expression):
     op: str
     right: Expression
 
+@dataclass
+class UnaryOp(Expression):
+    """AST node which represent a unary operation `- or not`"""
+    op: str
+    operand: Expression
 
 @dataclass
 class IfExpr(Expression):
     """AST node which represents a 'if-then-else' statement"""
-    if_: Expression
+    condition: Expression
     then: Expression
     else_: Optional[Expression] = None
 

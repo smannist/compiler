@@ -63,7 +63,7 @@ def test_parse_if_expression() -> None:
     tokens = tokenize("if a then b + c else x * y")
     assert parse(tokens) == [
         ast.IfExpr(
-            if_=ast.Identifier(name="a"),
+            condition=ast.Identifier(name="a"),
             then=ast.BinaryOp(
                 left=ast.Identifier(name="b"),
                 op="+",
@@ -82,7 +82,7 @@ def test_parse_if_expression_without_else() -> None:
     tokens = tokenize("if a then b + c")
     assert parse(tokens) == [
         ast.IfExpr(
-            if_=ast.Identifier(name="a"),
+            condition=ast.Identifier(name="a"),
             then=ast.BinaryOp(
                 left=ast.Identifier(name="b"),
                 op="+",
@@ -100,7 +100,7 @@ def test_parse_if_expression_as_part_of_other_expressions() -> None:
             left=ast.Literal(value=1),
             op="+",
             right=ast.IfExpr(
-                if_=ast.Literal(value=True),
+                condition=ast.Literal(value=True),
                 then=ast.Literal(value=2),
                 else_=ast.Literal(value=3)
             )
@@ -113,14 +113,14 @@ def test_nested_if_statements() -> None:
         "if true then if false then 1 else 2 else if true then 3 else 4")
     assert parse(tokens) == [
         ast.IfExpr(
-            if_=ast.Literal(value=True),
+            condition=ast.Literal(value=True),
             then=ast.IfExpr(
-                if_=ast.Literal(value=False),
+                condition=ast.Literal(value=False),
                 then=ast.Literal(value=1),
                 else_=ast.Literal(value=2),
             ),
             else_=ast.IfExpr(
-                if_=ast.Literal(value=True),
+                condition=ast.Literal(value=True),
                 then=ast.Literal(value=3),
                 else_=ast.Literal(value=4),
             ),
@@ -143,6 +143,72 @@ def test_parse_function_expr() -> None:
             ]
         )
     ]
+
+
+def test_parse_simple_unary_operation() -> None:
+    tokens = tokenize("not z")
+    assert parse(tokens) == [
+        ast.UnaryOp(
+            op="not",
+            operand=ast.Identifier("z")
+        )
+    ]
+
+
+def test_parse_unary_not_expression() -> None:
+    tokens = tokenize("if not x then y+z")
+    assert parse(tokens) == [
+        ast.IfExpr(
+            condition=ast.UnaryOp(
+                op="not",
+                operand=ast.Identifier("x")
+            ),
+            then=ast.BinaryOp(
+                left=ast.Identifier("y"),
+                op="+",
+                right=ast.Identifier("z")
+            ),
+            else_=None,
+        )
+    ]
+
+
+def test_parse_unary_minus_expression() -> None:
+    tokens = tokenize("if -x then y+z")
+    assert parse(tokens) == [
+        ast.IfExpr(
+            condition=ast.UnaryOp(
+                op="-",
+                operand=ast.Identifier("x")
+            ),
+            then=ast.BinaryOp(
+                left=ast.Identifier("y"),
+                op="+",
+                right=ast.Identifier("z")
+            ),
+            else_=None,
+        )
+    ]
+
+
+def test_parse_unary_minus_with_parentheses() -> None:
+    tokens = tokenize("if -(x+1) then y")
+    result = parse(tokens)
+    expected = [
+        ast.IfExpr(
+            condition=ast.UnaryOp(
+                op="-",
+                operand=ast.BinaryOp(
+                    left=ast.Identifier(name="x"),
+                    op="+",
+                    right=ast.Literal(value=1)
+                )
+            ),
+            then=ast.Identifier(name="y"),
+            else_=None
+        )
+    ]
+    assert result == expected
 
 
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:

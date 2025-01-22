@@ -11,11 +11,15 @@ LEFT_ASSOCIATIVE_BINARY_OPERATORS = [
     ["*", "/", "%"]
 ]
 
+UNARY_OPERATORS = ["-", "not"]
+
 MAX_PRECEDENCE_LEVEL = len(LEFT_ASSOCIATIVE_BINARY_OPERATORS) - 1
 MIN_PRECEDENCE_LEVEL = 0
 
+
 class ParsingException(Exception):
     pass
+
 
 class EmptyListExpection(Exception):
     pass
@@ -41,7 +45,8 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
             raise ParsingException(f"{token.loc}: expected '{expected}'")
         if isinstance(expected, list) and token.text not in expected:
             comma_separated = ", ".join([f'"{e}"' for e in expected])
-            raise ParsingException(f"{token.loc}: expected one of: {comma_separated}")
+            raise ParsingException(
+                f"{token.loc}: expected one of: {comma_separated}")
         pos += 1
         return token
 
@@ -89,15 +94,22 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
     def parse_if_expr() -> ast.IfExpr:
         consume("if")
-        if_expr = parse_expression()
+        condition_expr = parse_expression()
         consume("then")
         then_expr = parse_expression()
         else_expr = parse_expression() if peek().text == "else" and consume("else") else None
         return ast.IfExpr(
-            if_=if_expr,
-            then=then_expr,
-            else_=else_expr
+            condition_expr,
+            then_expr,
+            else_expr
         )
+
+    def parse_unary_op() -> ast.UnaryOp:
+        if peek().text in UNARY_OPERATORS:
+            op = consume().text
+            operand = parse_expression()
+            return ast.UnaryOp(op, operand)
+        raise ParsingException(f"{peek().loc}: expected unary operator")
 
     def parse_expression(
             precedence_level: int = MIN_PRECEDENCE_LEVEL) -> ast.Expression:
@@ -117,6 +129,8 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
     def parse_factor() -> ast.Expression:
         if peek().text == "(":
             return parse_parenthesized()
+        elif peek().type == "unary_op" or peek().text == "-" and is_unary():
+            return parse_unary_op()
         elif peek().type in ["int_literal", "bool_literal"]:
             return parse_literal()
         elif peek().type == "identifier":
@@ -145,5 +159,15 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         while peek().type != "end":
             expressions.append(parse_expression())
         return expressions
+
+    def is_unary() -> bool:
+        if pos == 0:
+            return True
+        prev_token = tokens[pos - 1]
+        return prev_token.type in [
+            "binary_op",
+            "unary_op",
+            "punctuation",
+            "keyword"] or prev_token.text == "("
 
     return parse_source_code()
