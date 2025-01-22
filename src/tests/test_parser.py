@@ -1,5 +1,5 @@
 import compiler.ast as ast
-from compiler.parser import parse, ParsingException, EmptyListExpection
+from compiler.parser import parse, ParsingException, EmptyListException
 from compiler.tokenizer import tokenize
 
 
@@ -243,7 +243,7 @@ def test_empty_token_list_raises_an_error() -> None:
     tokens: list = []
     try:
         parse(tokens)
-    except EmptyListExpection as e:
+    except EmptyListException as e:
         assert str(e) == "token list must not be empty."
     else:
         assert False, "Expected Exception was not raised"

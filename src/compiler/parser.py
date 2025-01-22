@@ -20,7 +20,7 @@ class ParsingException(Exception):
     pass
 
 
-class EmptyListExpection(Exception):
+class EmptyListException(Exception):
     pass
 
 
@@ -150,7 +150,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
     def parse_source_code() -> list[ast.Expression]:
         if not tokens:
-            raise EmptyListExpection(
+            raise EmptyListException(
                 "token list must not be empty."
             )
 
