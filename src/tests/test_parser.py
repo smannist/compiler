@@ -368,7 +368,6 @@ def test_parse_simple_while_expr() -> None:
     };
     """
     tokens = tokenize(source_code)
-    print(parse(tokens))
     assert parse(tokens) == [
         ast.WhileExpr(
             condition=ast.BinaryOp(
