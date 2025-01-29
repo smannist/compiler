@@ -171,15 +171,18 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
         while peek().text != "}":
             expr = parse_expression()
-            if peek().text == ";":
+            token = peek()
+
+            if token.text == ";":
                 expressions.append(expr)
                 consume(";")
+            elif token.text == "}":
+                consume("}")
+                return ast.Statements(expressions=expressions, result=expr)
+            elif tokens[pos - 1].text not in ["{", "}", ";"]:
+                raise ParsingException(f"{peek().loc}: consecutive result expressions are not allowed.")
             else:
-                if peek().text == "}":
-                    consume("}")
-                    return ast.Statements(expressions=expressions, result=expr)
-                else:
-                    expressions.append(expr)
+                expressions.append(expr)
 
         consume("}")
         return ast.Statements(expressions=expressions)
