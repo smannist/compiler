@@ -394,6 +394,81 @@ def test_parse_simple_while_expr() -> None:
     ]
 
 
+def test_parse_nested_while_with_if_and_statements() -> None:
+    source_code = """{ while f() do {
+        x = 10;
+        y = if g(x) then {
+            x = x + 1;
+            x
+        } else {
+            g(x)
+        };
+            g(y);
+        };
+        123
+    }"""
+    tokens = tokenize(source_code)
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.WhileExpr(
+                    condition=ast.FuncExpr(
+                        identifier=ast.Identifier(name="f"),
+                        arguments=[]
+                    ),
+                    body=ast.Statements(
+                        expressions=[
+                            ast.BinaryOp(
+                                left=ast.Identifier(name="x"),
+                                op="=",
+                                right=ast.Literal(value=10)
+                            ),
+                            ast.BinaryOp(
+                                left=ast.Identifier(name="y"),
+                                op="=",
+                                right=ast.IfExpr(
+                                    condition=ast.FuncExpr(
+                                        identifier=ast.Identifier(name="g"),
+                                        arguments=[ast.Identifier(name="x")]
+                                    ),
+                                    then=ast.Statements(
+                                        expressions=[
+                                            ast.BinaryOp(
+                                                left=ast.Identifier(name="x"),
+                                                op="=",
+                                                right=ast.BinaryOp(
+                                                    left=ast.Identifier(name="x"),
+                                                    op="+",
+                                                    right=ast.Literal(value=1)
+                                                )
+                                            )
+                                        ],
+                                        result=ast.Identifier(name="x")
+                                    ),
+                                    else_=ast.Statements(
+                                        expressions=[],
+                                        result=ast.FuncExpr(
+                                            identifier=ast.Identifier(name='g'),
+                                            arguments=[ast.Identifier(name='x')]
+                                        )
+                                    )
+                                )
+                            ),
+                            ast.FuncExpr(
+                                identifier=ast.Identifier(name="g"),
+                                arguments=[ast.Identifier(name="y")]
+                            )
+                        ],
+                        result=ast.Literal(value=None)
+                    ),
+                    result=ast.Literal(value=None)
+                )
+            ],
+            result=ast.Literal(value=123)
+        )
+    ]
+
+
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
     tokens = tokenize("a + b +")
     try:

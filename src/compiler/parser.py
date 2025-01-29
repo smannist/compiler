@@ -41,7 +41,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         nonlocal pos
         token = peek()
         if isinstance(expected, str) and token.text != expected:
-            raise ParsingException(f"{token.loc}: expected '{expected}'")
+            raise ParsingException(f"{token.loc}: expected '{expected}' but got {token.text}")
         if isinstance(expected, list) and token.text not in expected:
             comma_separated = ", ".join([f'"{e}"' for e in expected])
             raise ParsingException(
@@ -175,8 +175,11 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
                 expressions.append(expr)
                 consume(";")
             else:
-                consume("}")
-                return ast.Statements(expressions=expressions, result=expr)
+                if peek().text == "}":
+                    consume("}")
+                    return ast.Statements(expressions=expressions, result=expr)
+                else:
+                    expressions.append(expr)
 
         consume("}")
         return ast.Statements(expressions=expressions)
