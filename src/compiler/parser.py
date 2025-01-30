@@ -24,7 +24,7 @@ class EmptyListException(Exception):
     pass
 
 
-def parse(tokens: list[Token]) -> list[ast.Expression]:
+def parse(tokens: list[Token]) -> ast.Expression:
     pos = 0
 
     def peek() -> Token:
@@ -214,7 +214,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         token = consume("}")
         return ast.Statements(expressions=expressions, location=token.loc)
 
-    def parse_source_code() -> list[ast.Expression]:
+    def parse_source_code() -> ast.Expression:
         if not tokens:
             raise EmptyListException("token list must not be empty.")
 
