@@ -190,7 +190,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         if not tokens:
             raise EmptyListException("token list must not be empty.")
 
-        expressions = []
+        expressions: list[ast.Statements | ast.Expression] = []
         while peek().type != "end":
             expr = parse_expression()
             if peek().text == ";":
