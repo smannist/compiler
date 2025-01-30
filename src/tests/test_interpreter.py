@@ -6,5 +6,5 @@ def test_interpret_basic_sum() -> None:
     source_code = "2 + 3"
     tokens = tokenize(source_code)
     parsed = parse(tokens)
-    result = interpret(parsed[0])
+    result = interpret(parsed)
     assert result == 5

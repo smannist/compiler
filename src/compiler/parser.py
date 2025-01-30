@@ -238,7 +238,7 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
         if top_level_vars:
             if not expressions:
-                return [ast.Statements(expressions=top_level_vars, location=peek().loc)]
+                return ast.Statements(expressions=top_level_vars, location=peek().loc)
             elif isinstance(expressions[0], ast.Statements):
                 for var_decl in top_level_vars[::-1]:
                     expressions[0].expressions.insert(0, var_decl)
@@ -246,9 +246,9 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
                 statements = ast.Statements(expressions=expressions, location=peek().loc)
                 for var_decl in top_level_vars[::-1]:
                     statements.expressions.insert(0, var_decl)
-                return [statements]
+                return statements
 
-        return expressions
+        return expressions[0]
 
     def is_unary() -> bool:
         if pos == 0:

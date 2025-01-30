@@ -5,8 +5,7 @@ from compiler.tokenizer import tokenize, Location
 
 def test_parse_plus_expression() -> None:
     tokens = tokenize("a + b")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Identifier(
                 name="a",
                 location=Location(line=0, column=0)),
@@ -17,13 +16,11 @@ def test_parse_plus_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_greater_than_expression() -> None:
     tokens = tokenize("a > b")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Identifier(
                 name="a",
                 location=Location(line=0, column=0)),
@@ -33,13 +30,12 @@ def test_parse_greater_than_expression() -> None:
                 location=Location(line=0, column=0)),
             location=Location(line=0, column=0)
         )
-    ]
+    
 
 
 def test_parse_longer_expression() -> None:
     tokens = tokenize("a + b - c")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.BinaryOp(
                 left=ast.Identifier(
                     name="a",
@@ -59,13 +55,12 @@ def test_parse_longer_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
+    
 
 
 def test_precedence_product_expression() -> None:
     tokens = tokenize("a + b * c")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Identifier(
                 name="a",
                 location=Location(line=0, column=0)
@@ -85,13 +80,12 @@ def test_precedence_product_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
+
 
 
 def test_parse_if_expression() -> None:
     tokens = tokenize("if a then b + c else x * y")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.Identifier(name="a", location=Location(line=0, column=0)),
             then=ast.BinaryOp(
                 left=ast.Identifier(name="b", location=Location(line=0, column=0)),
@@ -107,13 +101,12 @@ def test_parse_if_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
+    
 
 
 def test_parse_if_expression_without_else() -> None:
     tokens = tokenize("if a then b + c")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.Identifier(
                 name="a",
                 location=Location(
@@ -139,13 +132,12 @@ def test_parse_if_expression_without_else() -> None:
                 location=None),
             location=Location(
                 line=1,
-                column=6))]
+                column=6))
 
 
 def test_parse_if_expression_as_part_of_other_expressions() -> None:
     tokens = tokenize("1 + if true then 2 else 3")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Literal(
                 value=1,
                 location=Location(line=0, column=0)
@@ -168,15 +160,13 @@ def test_parse_if_expression_as_part_of_other_expressions() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_nested_if_statements() -> None:
     tokens = tokenize(
         "if true then if false then 1 else 2 else if true then 3 else 4"
     )
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.Literal(
                 value=True,
                 location=Location(line=0, column=0)
@@ -213,13 +203,12 @@ def test_nested_if_statements() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
+
 
 
 def test_parse_if_expression_with_assignment_semicolon() -> None:
     tokens = tokenize("if x > y then { z = 1; };")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.IfExpr(
                     condition=ast.BinaryOp(
@@ -268,13 +257,11 @@ def test_parse_if_expression_with_assignment_semicolon() -> None:
             ),
             location=Location(line=1, column=25)
         )
-    ]
 
 
 def test_parse_if_expression_with_assignment_no_semicolon() -> None:
     tokens = tokenize("if x > y then { z = 1; }")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.BinaryOp(
                 left=ast.Identifier(
                     name="x",
@@ -314,13 +301,11 @@ def test_parse_if_expression_with_assignment_no_semicolon() -> None:
             ),
             location=Location(line=1, column=10)
         )
-    ]
 
 
 def test_parse_function_expr() -> None:
     tokens = tokenize("f(x, y + z)")
-    assert parse(tokens) == [
-        ast.FuncExpr(
+    assert parse(tokens) == ast.FuncExpr(
             identifier=ast.Identifier(
                 name="f",
                 location=Location(line=0, column=0)
@@ -345,23 +330,20 @@ def test_parse_function_expr() -> None:
             ],
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_simple_unary_operation() -> None:
     tokens = tokenize("not z")
-    assert parse(tokens) == [
-        ast.UnaryOp(
+    assert parse(tokens) == ast.UnaryOp(
             op="not", operand=ast.Identifier(
                 name="z", location=Location(
                     line=0, column=0)), location=Location(
-                line=0, column=0))]
+                line=0, column=0))
 
 
 def test_parse_unary_not_expression() -> None:
     tokens = tokenize("if not x then y+z")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.UnaryOp(
                 op="not",
                 operand=ast.Identifier(name="x", location=Location(line=1, column=5)),
@@ -376,13 +358,11 @@ def test_parse_unary_not_expression() -> None:
             else_=ast.Literal(value=None, location=None),
             location=Location(line=1, column=7)
         )
-    ]
 
 
 def test_parse_unary_minus_expression() -> None:
     tokens = tokenize("if -x then y+z")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.UnaryOp(
                 op="-",
                 operand=ast.Identifier(
@@ -409,13 +389,11 @@ def test_parse_unary_minus_expression() -> None:
             ),
             location=Location(line=1, column=7)
         )
-    ]
 
 
 def test_parse_unary_minus_with_parentheses() -> None:
     tokens = tokenize("if -(x+1) then y")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.UnaryOp(
                 op="-",
                 operand=ast.BinaryOp(
@@ -442,25 +420,22 @@ def test_parse_unary_minus_with_parentheses() -> None:
             ),
             location=Location(line=1, column=12)
         )
-    ]
 
 
 def test_parse_unary_chaining_not_operators() -> None:
     tokens = tokenize("not not x")
-    assert parse(tokens) == [
-        ast.UnaryOp(
+    assert parse(tokens) == ast.UnaryOp(
             op="not", operand=ast.UnaryOp(
                 op="not", operand=ast.Identifier(
                     name="x", location=Location(
                         line=0, column=0)), location=Location(
                     line=0, column=0)), location=Location(
-                line=0, column=0))]
+                line=0, column=0))
 
 
 def test_parse_unary_chaining_minus_operators() -> None:
     tokens = tokenize("--x")
-    assert parse(tokens) == [
-        ast.UnaryOp(
+    assert parse(tokens) == ast.UnaryOp(
             op="-",
             operand=ast.UnaryOp(
                 op="-",
@@ -474,13 +449,12 @@ def test_parse_unary_chaining_minus_operators() -> None:
                     column=0)),
             location=Location(
                 line=0,
-                column=0))]
+                column=0))
 
 
 def test_parse_assignment_op_right_asso() -> None:
     tokens = tokenize("if x = y+z then z")
-    assert parse(tokens) == [
-        ast.IfExpr(
+    assert parse(tokens) == ast.IfExpr(
             condition=ast.BinaryOp(
                 left=ast.Identifier(name="x", location=Location(line=1, column=4)),
                 op="=",
@@ -496,13 +470,11 @@ def test_parse_assignment_op_right_asso() -> None:
             else_=ast.Literal(value=None, location=None),
             location=Location(line=1, column=12)
         )
-    ]
 
 
 def test_parse_or_expression() -> None:
     tokens = tokenize("a or b")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Identifier(
                 name="a",
                 location=Location(line=0, column=0)
@@ -514,13 +486,11 @@ def test_parse_or_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_and_expression() -> None:
     tokens = tokenize("a and b")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Identifier(
                 name="a",
                 location=Location(line=0, column=0)
@@ -532,13 +502,11 @@ def test_parse_and_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_complex_and_or_expression() -> None:
     tokens = tokenize("a and b or c and d")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.BinaryOp(
                 left=ast.Identifier(name="a", location=Location(line=0, column=0)),
                 op="and",
@@ -554,7 +522,6 @@ def test_parse_complex_and_or_expression() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_simple_statement_without_final_semicolon() -> None:
@@ -565,8 +532,7 @@ def test_parse_simple_statement_without_final_semicolon() -> None:
     }
     """
     tokens = tokenize(source_code)
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.FuncExpr(
                     identifier=ast.Identifier(name="f", location=Location(line=0, column=0)),
@@ -591,7 +557,6 @@ def test_parse_simple_statement_without_final_semicolon() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_simple_statement_with_final_semicolon() -> None:
@@ -602,8 +567,7 @@ def test_parse_simple_statement_with_final_semicolon() -> None:
     }
     """
     tokens = tokenize(source_code)
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.FuncExpr(
                     identifier=ast.Identifier(name="f", location=Location(line=0, column=0)),
@@ -629,7 +593,6 @@ def test_parse_simple_statement_with_final_semicolon() -> None:
             result=ast.Literal(value=None, location=None),
             location=Location(line=3, column=6)
         )
-    ]
 
 
 def test_parse_simple_while_expr() -> None:
@@ -638,8 +601,7 @@ def test_parse_simple_while_expr() -> None:
     };
     """
     tokens = tokenize(source_code)
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.WhileExpr(
                     condition=ast.BinaryOp(
@@ -671,7 +633,6 @@ def test_parse_simple_while_expr() -> None:
             result=ast.Literal(value=None, location=None),
             location=Location(line=3, column=6)
         )
-    ]
 
 
 def test_parse_nested_while_with_if_and_statements() -> None:
@@ -688,8 +649,7 @@ def test_parse_nested_while_with_if_and_statements() -> None:
         123
     }"""
     tokens = tokenize(source_code)
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.WhileExpr(
                     condition=ast.FuncExpr(
@@ -759,13 +719,11 @@ def test_parse_nested_while_with_if_and_statements() -> None:
             result=ast.Literal(value=123, location=Location(line=11, column=9)),
             location=Location(line=1, column=5)
         )
-    ]
 
 
 def test_parse_variable_decl() -> None:
     tokens = tokenize("var x = 123; var y = 200;")
-    assert (parse(tokens)) == [
-        ast.Statements(
+    assert (parse(tokens)) == ast.Statements(
             expressions=[
                 ast.LiteralVarDecl(
                     identifier=ast.Identifier(name="x", location=Location(line=1, column=5)),
@@ -781,7 +739,6 @@ def test_parse_variable_decl() -> None:
             result=ast.Literal(value=None, location=None),
             location=Location(line=1, column=25)
         )
-    ]
 
 
 def test_parse_variable_decl_at_top_level_semi() -> None:
@@ -793,8 +750,7 @@ def test_parse_variable_decl_at_top_level_semi() -> None:
     };
     """
     tokens = tokenize(source_code)
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.LiteralVarDecl(
                     identifier=ast.Identifier(name="x", location=Location(line=2, column=9)),
@@ -836,7 +792,6 @@ def test_parse_variable_decl_at_top_level_semi() -> None:
             result=ast.Literal(value=None, location=None),
             location=Location(line=6, column=6)
         )
-    ]
 
 
 def test_parse_while_block_with_vars_inside_no_semi_result_expr() -> None:
@@ -847,8 +802,7 @@ def test_parse_while_block_with_vars_inside_no_semi_result_expr() -> None:
             x = x + 1
         }
     """)
-    assert parse(tokens) == [
-        ast.WhileExpr(
+    assert parse(tokens) == ast.WhileExpr(
             condition=ast.BinaryOp(
                 left=ast.Identifier(name="x", location=Location(line=0, column=0)),
                 op=">",
@@ -883,7 +837,6 @@ def test_parse_while_block_with_vars_inside_no_semi_result_expr() -> None:
             ),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_nested_blocks_result_block_iden() -> None:
@@ -892,8 +845,7 @@ def test_parse_nested_blocks_result_block_iden() -> None:
         { b }
     }"""
     tokens = tokenize(source_code)
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.Statements(
                     expressions=[], result=ast.Identifier(
@@ -904,13 +856,12 @@ def test_parse_nested_blocks_result_block_iden() -> None:
                     name="b", location=Location(
                         line=0, column=0)), location=Location(
                     line=0, column=0)), location=Location(
-                line=0, column=0))]
+                line=0, column=0))
 
 
 def test_parse_if_expr_with_block_then_no_semi_inside_curl_then() -> None:
     tokens = tokenize("{ if true then { a } b }")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.IfExpr(
                     condition=ast.Literal(value=True, location=Location(line=1, column=6)),
@@ -926,13 +877,11 @@ def test_parse_if_expr_with_block_then_no_semi_inside_curl_then() -> None:
             result=ast.Identifier(name="b", location=Location(line=1, column=22)),
             location=Location(line=1, column=24)
         )
-    ]
 
 
 def test_parse_if_expr_with_block_then_semi_inside_curl_then_1() -> None:
     tokens = tokenize("{ if true then { a }; b }")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.IfExpr(
                     condition=ast.Literal(value=True, location=Location(line=0, column=0)),
@@ -948,13 +897,10 @@ def test_parse_if_expr_with_block_then_semi_inside_curl_then_1() -> None:
             result=ast.Identifier(name="b", location=Location(line=0, column=0)),
             location=Location(line=0, column=0)
         )
-    ]
-
 
 def test_parse_if_expr_with_block_then_semi_inside_curl_then_2() -> None:
     tokens = tokenize("{ if true then { a } b; c }")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.IfExpr(
                     condition=ast.Literal(
@@ -978,13 +924,11 @@ def test_parse_if_expr_with_block_then_semi_inside_curl_then_2() -> None:
                     line=1, column=25)),
             location=Location(line=1, column=27)
         )
-    ]
 
 
 def test_parse_if_expr_with_block_then_semi_inside_curl_then_else() -> None:
     tokens = tokenize("{ if true then { a } else { b } c }")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.IfExpr(
                     condition=ast.Literal(value=True, location=Location(line=0, column=0)),
@@ -1004,13 +948,11 @@ def test_parse_if_expr_with_block_then_semi_inside_curl_then_else() -> None:
             result=ast.Identifier(name="c", location=Location(line=0, column=0)),
             location=Location(line=0, column=0)
         )
-    ]
 
 
 def test_parse_curly_declaration() -> None:
     tokens = tokenize("x = { { f(a) } { b } }")
-    assert parse(tokens) == [
-        ast.BinaryOp(
+    assert parse(tokens) == ast.BinaryOp(
             left=ast.Identifier(name="x", location=Location(line=1, column=1)),
             op="=",
             right=ast.Statements(
@@ -1034,13 +976,11 @@ def test_parse_curly_declaration() -> None:
             ),
             location=Location(line=1, column=3)
         )
-    ]
 
 
 def test_parse_curly_declaration_2() -> None:
     tokens = tokenize("{ { x }; { y }; }")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.Statements(
                     expressions=[],
@@ -1060,13 +1000,11 @@ def test_parse_curly_declaration_2() -> None:
             result=ast.Literal(value=None, location=None),
             location=Location(line=1, column=17)
         )
-    ]
 
 
 def test_parse_curly_declaration_3() -> None:
     tokens = tokenize("{ { x } { y } }")
-    assert parse(tokens) == [
-        ast.Statements(
+    assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.Statements(
                     expressions=[], result=ast.Identifier(
@@ -1077,7 +1015,7 @@ def test_parse_curly_declaration_3() -> None:
                     name="y", location=Location(
                         line=1, column=11)), location=Location(
                     line=1, column=11)), location=Location(
-                line=1, column=15))]
+                line=1, column=15))
 
 
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
