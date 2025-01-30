@@ -109,7 +109,6 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         condition = parse_expression()
         consume("do")
         body = parse_statements()
-        consume(";")
         return ast.WhileExpr(condition, body)
 
     def parse_unary_op() -> ast.UnaryOp:
@@ -189,12 +188,17 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
 
     def parse_source_code() -> list[ast.Expression]:
         if not tokens:
-            raise EmptyListException(
-                "token list must not be empty."
-            )
+            raise EmptyListException("token list must not be empty.")
+
         expressions = []
         while peek().type != "end":
-            expressions.append(parse_expression())
+            expr = parse_expression()
+            if peek().text == ";":
+                consume(";")
+                expressions.append(ast.Statements(expressions=[expr]))
+            else:
+                expressions.append(expr)
+
         return expressions
 
     def is_unary() -> bool:

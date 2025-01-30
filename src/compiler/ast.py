@@ -63,5 +63,3 @@ class WhileExpr(Expression):
     """AST node which represents a while expression"""
     condition: Expression
     body: Statements
-    result: Optional[Expression] = field(
-        default_factory=lambda: Literal(value=None))

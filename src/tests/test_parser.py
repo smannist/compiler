@@ -369,26 +369,30 @@ def test_parse_simple_while_expr() -> None:
     """
     tokens = tokenize(source_code)
     assert parse(tokens) == [
-        ast.WhileExpr(
-            condition=ast.BinaryOp(
-                left=ast.Identifier(name="y"),
-                op=">",
-                right=ast.Identifier(name="x")
-            ),
-            body=ast.Statements(
-                expressions=[
-                    ast.BinaryOp(
-                        left=ast.Identifier(name="x"),
-                        op="=",
-                        right=ast.BinaryOp(
-                            left=ast.Identifier(name="x"),
-                            op="+",
-                            right=ast.Literal(value=1)
-                        )
+        ast.Statements(
+            expressions=[
+                ast.WhileExpr(
+                    condition=ast.BinaryOp(
+                        left=ast.Identifier(name='y'),
+                        op='>',
+                        right=ast.Identifier(name='x')
+                    ),
+                    body=ast.Statements(
+                        expressions=[
+                            ast.BinaryOp(
+                                left=ast.Identifier(name='x'),
+                                op='=',
+                                right=ast.BinaryOp(
+                                    left=ast.Identifier(name='x'),
+                                    op='+',
+                                    right=ast.Literal(value=1)
+                                )
+                            )
+                        ],
+                        result=ast.Literal(value=None)
                     )
-                ],
-                result=ast.Literal(value=None)
-            ),
+                ),
+            ],
             result=ast.Literal(value=None)
         )
     ]
@@ -460,9 +464,8 @@ def test_parse_nested_while_with_if_and_statements() -> None:
                             )
                         ],
                         result=ast.Literal(value=None)
-                    ),
-                    result=ast.Literal(value=None)
-                )
+                    )
+                ),
             ],
             result=ast.Literal(value=123)
         )
