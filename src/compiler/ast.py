@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
 from typing_extensions import Optional, List
+from compiler.tokenizer import Location
 
 
 @dataclass
 class Expression:
     """Base class for AST nodes representing expressions."""
+    location: Optional[Location]
 
 
 @dataclass
@@ -39,7 +41,7 @@ class Statements(Expression):
     """AST node which represents statements wrapped in curly brackets `{}`"""
     expressions: List[Expression]
     result: Optional[Expression] = field(
-        default_factory=lambda: Literal(value=None))
+        default_factory=lambda: Literal(value=None, location=None))
 
 
 @dataclass
@@ -48,7 +50,7 @@ class IfExpr(Expression):
     condition: Expression
     then: Expression
     else_: Optional[Expression] = field(
-        default_factory=lambda: Literal(value=None))
+        default_factory=lambda: Literal(value=None, location=None))
 
 
 @dataclass
