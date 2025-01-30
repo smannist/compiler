@@ -140,9 +140,11 @@ def parse(tokens: list[Token]) -> ast.Expression:
         return ast.LiteralVarDecl(identifier=identifier, initializer=initializer, location=token.loc)
 
     def parse_unary_op() -> ast.UnaryOp:
-        token = consume()
-        operand = parse_factor()
-        return ast.UnaryOp(op=token.text, operand=operand, location=token.loc)
+        if peek().text in UNARY_OPERATORS:
+            token = consume()
+            operand = parse_factor()
+            return ast.UnaryOp(op=token.text, operand=operand, location=token.loc)
+        raise ParsingException(f"{peek().loc}: expected unary operator")
 
     def parse_expression(precedence_level: int = MIN_PRECEDENCE_LEVEL) -> ast.Expression:
         if precedence_level > MAX_PRECEDENCE_LEVEL:
