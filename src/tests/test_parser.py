@@ -391,6 +391,50 @@ def test_parse_unary_minus_expression() -> None:
         )
 
 
+def test_parse_sum_with_unary() -> None:
+    tokens = tokenize("-2 + 3")
+    assert parse(tokens) == ast.BinaryOp(
+        location=Location(line=1, column=4),
+        left=ast.UnaryOp(
+            location=Location(line=1, column=1),
+            op="-",
+            operand=ast.Literal(
+                location=Location(line=1, column=2),
+                value=2
+            )
+        ),
+        op="+",
+        right=ast.Literal(
+            location=Location(line=1, column=6),
+            value=3
+        )
+    )
+
+
+def test_parse_subtraction_with_unaries() -> None:
+    tokens = tokenize("-2--4")
+    assert parse(tokens) == ast.BinaryOp(
+        location=Location(line=1, column=4),
+        left=ast.UnaryOp(
+            location=Location(line=1, column=1),
+            op="-",
+            operand=ast.Literal(
+                location=Location(line=1, column=2),
+                value=2
+            )
+        ),
+        op="-",
+        right=ast.UnaryOp(
+            location=Location(line=1, column=5),
+            op="-",
+            operand=ast.Literal(
+                location=Location(line=1, column=6),
+                value=4
+            )
+        )
+    )
+
+
 def test_parse_unary_minus_with_parentheses() -> None:
     tokens = tokenize("if -(x+1) then y")
     assert parse(tokens) == ast.IfExpr(
