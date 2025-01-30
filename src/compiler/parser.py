@@ -97,19 +97,46 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         consume("then")
         then_expr = parse_expression()
 
+        if isinstance(condition, ast.LiteralVarDecl):
+            raise ParsingException(f"{peek().loc}: variable declarations are not allowed as a part of 'if' condition.")
+        if isinstance(then_expr, ast.LiteralVarDecl) or isinstance(then_expr, ast.LiteralVarDecl):
+            raise ParsingException(f"{peek().loc}: variable declarations are not allowed as a part of 'then' condition.")
+
         if peek().text == "else":
             consume("else")
             else_expr = parse_expression()
+            if isinstance(else_expr, ast.LiteralVarDecl):
+                raise ParsingException(f"{peek().loc}: variable declarations are not allowed as a part of 'else' condition.")
             return ast.IfExpr(condition, then_expr, else_expr)
-            
+
         return ast.IfExpr(condition, then_expr)
 
     def parse_while_expr() -> ast.WhileExpr:
         consume("while")
         condition = parse_expression()
+        if isinstance(condition, ast.LiteralVarDecl) or isinstance(condition, ast.LiteralVarDecl):
+            raise ParsingException(f"{peek().loc}: variable declarations are not allowed as a part of 'while' condition.")
         consume("do")
         body = parse_statements()
         return ast.WhileExpr(condition, body)
+
+    def parse_literal_var_decl_top_level() -> list[ast.LiteralVarDecl]: # for anything outside block e.g. top level vars
+        var_declarations = []
+        while peek().text == "var":
+            consume("var")
+            identifier = parse_identifier()
+            consume("=")
+            initializer = parse_literal()
+            consume(";")
+            var_declarations.append(ast.LiteralVarDecl(identifier=identifier, initializer=initializer))        
+        return var_declarations
+
+    def parse_literal_var_decl_inside_block() -> ast.LiteralVarDecl: # for vars inside blocks
+        consume("var")
+        identifier = parse_identifier()
+        consume("=")
+        initializer = parse_literal()
+        return ast.LiteralVarDecl(identifier=identifier, initializer=initializer)
 
     def parse_unary_op() -> ast.UnaryOp:
         if peek().text in UNARY_OPERATORS:
@@ -153,6 +180,8 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
                 return parse_if_expr()
             case Token(type="keyword", text="while"):
                 return parse_while_expr()
+            case Token(type="keyword", text="var"):
+                return parse_literal_var_decl_inside_block() # used for vars inside blocks for now
             case _:
                 raise ParsingException(
                     f"{token.loc}: expected an integer literal or an identifier"
@@ -190,14 +219,35 @@ def parse(tokens: list[Token]) -> list[ast.Expression]:
         if not tokens:
             raise EmptyListException("token list must not be empty.")
 
-        expressions: list[ast.Statements | ast.Expression] = []
+        top_level_vars: list[ast.Expression] = []
+        expressions: list[ast.Expression] = []
+
         while peek().type != "end":
-            expr = parse_expression()
-            if peek().text == ";":
-                consume(";")
-                expressions.append(ast.Statements(expressions=[expr]))
+            if peek().text == "var":
+                var_decls = parse_literal_var_decl_top_level()
+                top_level_vars.extend(var_decls)
             else:
-                expressions.append(expr)
+                expr = parse_expression()
+                if peek().text == ";" and not expressions:
+                    consume(";")
+                    expressions.append(ast.Statements(expressions=[expr]))
+                elif expressions:
+                    if isinstance(expressions[0], ast.Statements):
+                        expressions[0].expressions.append(expr)
+                else:
+                    expressions.append(expr)
+
+        if top_level_vars:
+            if not expressions:
+                return [ast.Statements(expressions=top_level_vars)]
+            elif isinstance(expressions[0], ast.Statements):
+                for var_decl in top_level_vars[::-1]:
+                    expressions[0].expressions.insert(0, var_decl)
+            else:
+                statements = ast.Statements(expressions=expressions)
+                for var_decl in top_level_vars[::-1]:
+                    statements.expressions.insert(0, var_decl)
+                return [statements]
 
         return expressions
 

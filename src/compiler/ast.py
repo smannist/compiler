@@ -63,3 +63,10 @@ class WhileExpr(Expression):
     """AST node which represents a while expression"""
     condition: Expression
     body: Statements
+
+
+@dataclass
+class LiteralVarDecl(Expression):
+    """AST node which represents a literal variable"""
+    identifier: Identifier
+    initializer: Literal

@@ -128,6 +128,56 @@ def test_nested_if_statements() -> None:
     ]
 
 
+def test_parse_if_expression_with_assignment_semicolon() -> None:
+    tokens = tokenize("if x > y then { z = 1; };")
+    assert parse(tokens) == [
+        ast.Statements(expressions=[ast.IfExpr(
+            condition=ast.BinaryOp(
+                left=ast.Identifier(name="x"),
+                op=">",
+                right=ast.Identifier(name="y")
+            ),
+            then=ast.Statements(
+                expressions=[
+                    ast.BinaryOp(
+                        left=ast.Identifier(name="z"),
+                        op="=",
+                        right=ast.Literal(value=1)
+                    )
+                ],
+                result=ast.Literal(value=None)
+            ),
+            else_=ast.Literal(value=None)
+        )],
+            result=ast.Literal(value=None)
+        )
+    ]
+
+
+def test_parse_if_expression_with_assignment_no_semicolon() -> None:
+    tokens = tokenize("if x > y then { z = 1; }")
+    assert parse(tokens) == [
+        ast.IfExpr(
+            condition=ast.BinaryOp(
+                left=ast.Identifier(name="x"),
+                op=">",
+                right=ast.Identifier(name="y")
+            ),
+            then=ast.Statements(
+                expressions=[
+                    ast.BinaryOp(
+                        left=ast.Identifier(name="z"),
+                        op="=",
+                        right=ast.Literal(value=1)
+                    )
+                ],
+                result=ast.Literal(value=None)
+            ),
+            else_=ast.Literal(value=None)
+        )
+    ]
+
+
 def test_parse_function_expr() -> None:
     tokens = tokenize("f(x, y + z)")
     assert parse(tokens) == [
@@ -472,6 +522,274 @@ def test_parse_nested_while_with_if_and_statements() -> None:
     ]
 
 
+def test_parse_variable_decl() -> None:
+    tokens = tokenize("var x = 123; var y = 200;")
+    assert (parse(tokens)) == [ast.Statements(
+        expressions=[
+            ast.LiteralVarDecl(
+                identifier=ast.Identifier(name='x'),
+                initializer=ast.Literal(value=123)
+            ),
+            ast.LiteralVarDecl(
+                identifier=ast.Identifier(name='y'),
+                initializer=ast.Literal(value=200)
+            )
+        ],
+        result=ast.Literal(value=None)
+    )]
+
+
+def test_parse_variable_decl_at_top_level_semi() -> None:
+    source_code = """
+    var x = 123;
+    var y = 200;
+    while x > y do {
+        x = x + 1;
+    };
+    """
+    tokens = tokenize(source_code)
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.LiteralVarDecl(
+                    identifier=ast.Identifier(name='x'),
+                    initializer=ast.Literal(value=123)
+                ),
+                ast.LiteralVarDecl(
+                    identifier=ast.Identifier(name='y'),
+                    initializer=ast.Literal(value=200)
+                ),
+                ast.WhileExpr(
+                    condition=ast.BinaryOp(
+                        left=ast.Identifier(name='x'),
+                        op='>',
+                        right=ast.Identifier(name='y')
+                    ),
+                    body=ast.Statements(
+                        expressions=[
+                            ast.BinaryOp(
+                                left=ast.Identifier(name='x'),
+                                op='=',
+                                right=ast.BinaryOp(
+                                    left=ast.Identifier(name='x'),
+                                    op='+',
+                                    right=ast.Literal(value=1)
+                                )
+                            )
+                        ],
+                        result=ast.Literal(value=None)
+                    )
+                )
+            ],
+            result=ast.Literal(value=None)
+        )
+    ]
+
+
+def test_parse_while_block_with_vars_inside_no_semi_result_expr() -> None:
+    tokens = tokenize("""
+        while x > y do {
+            var x = 123;
+            var y = 200;
+            x = x + 1
+        }
+    """)
+    assert parse(tokens) == [
+        ast.WhileExpr(
+            condition=ast.BinaryOp(
+                left=ast.Identifier(name="x"),
+                op=">",
+                right=ast.Identifier(name="y")
+            ),
+            body=ast.Statements(
+                expressions=[
+                    ast.LiteralVarDecl(
+                        identifier=ast.Identifier(name="x"),
+                        initializer=ast.Literal(value=123)
+                    ),
+                    ast.LiteralVarDecl(
+                        identifier=ast.Identifier(name="y"),
+                        initializer=ast.Literal(value=200)
+                    )
+                ],
+                result=ast.BinaryOp(
+                    left=ast.Identifier(name="x"),
+                    op="=",
+                    right=ast.BinaryOp(
+                        left=ast.Identifier(name="x"),
+                        op="+",
+                        right=ast.Literal(value=1)
+                    )
+                ))
+        )
+    ]
+
+
+def test_parse_nested_blocks_result_block_iden() -> None:
+    source_code = """{
+        { a }
+        { b }
+    }"""
+    tokens = tokenize(source_code)
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.Statements(
+                    expressions=[],
+                    result=ast.Identifier(name="a")
+                )
+            ],
+            result=ast.Statements(
+                expressions=[],
+                result=ast.Identifier(name="b")
+            )
+        )
+    ]
+
+
+def test_parse_if_expr_with_block_then_no_semi_inside_curl_then() -> None:
+    tokens = tokenize("{ if true then { a } b }")
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.IfExpr(
+                    condition=ast.Literal(value=True),
+                    then=ast.Statements(
+                        expressions=[],
+                        result=ast.Identifier(name="a")
+                    ),
+                    else_=ast.Literal(value=None)
+                )
+            ],
+            result=ast.Identifier(name="b")
+        )
+    ]
+
+
+def test_parse_if_expr_with_block_then_semi_inside_curl_then_1() -> None:
+    tokens = tokenize("{ if true then { a }; b }")
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.IfExpr(
+                    condition=ast.Literal(value=True),
+                    then=ast.Statements(
+                        expressions=[],
+                        result=ast.Identifier(name="a")
+                    ),
+                    else_=ast.Literal(value=None)
+                )
+            ],
+            result=ast.Identifier(name="b")
+        )
+    ]
+
+
+def test_parse_if_expr_with_block_then_semi_inside_curl_then_2() -> None:
+    tokens = tokenize("{ if true then { a } b; c }")
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.IfExpr(
+                    condition=ast.Literal(value=True),
+                    then=ast.Statements(
+                        expressions=[],
+                        result=ast.Identifier(name="a")
+                    ),
+                    else_=ast.Literal(value=None)
+                ),
+                ast.Identifier(name="b"),
+            ],
+            result=ast.Identifier(name="c")
+        )
+    ]
+
+
+def test_parse_if_expr_with_block_then_semi_inside_curl_then_else() -> None:
+    tokens = tokenize("{ if true then { a } else { b } c }")
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.IfExpr(
+                    condition=ast.Literal(value=True),
+                    then=ast.Statements(
+                        expressions=[],
+                        result=ast.Identifier(name="a")
+                    ),
+                    else_=ast.Statements(
+                        expressions=[],
+                        result=ast.Identifier("b")
+                    )
+                )
+            ],
+            result=ast.Identifier(name="c")
+        )
+    ]
+
+
+def test_parse_curly_declaration() -> None:
+    tokens = tokenize("x = { { f(a) } { b } }")
+    assert parse(tokens) == [
+        ast.BinaryOp(
+            left=ast.Identifier(name='x'),
+            op='=',
+            right=ast.Statements(
+                expressions=[
+                    ast.Statements(
+                        expressions=[],
+                        result=ast.FuncExpr(
+                            identifier=ast.Identifier(name='f'),
+                            arguments=[ast.Identifier(name='a')]
+                        )
+                    )
+                ],
+                result=ast.Statements(
+                    expressions=[],
+                    result=ast.Identifier(name='b')
+                )
+            )
+        )
+    ]
+
+
+def test_parse_curly_declaration_2() -> None:
+    tokens = tokenize("{ { x }; { y }; }")
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.Statements(
+                    expressions=[],
+                    result=ast.Identifier(name="x")
+                ),
+                ast.Statements(
+                    expressions=[],
+                    result=ast.Identifier(name="y")
+                )
+            ],
+            result=ast.Literal(value=None)
+        )
+    ]
+
+
+def test_parse_curly_declaration_3() -> None:
+    tokens = tokenize("{ { x } { y } }")
+    print(parse(tokens))
+    assert parse(tokens) == [
+        ast.Statements(
+            expressions=[
+                ast.Statements(
+                    expressions=[],
+                    result=ast.Identifier(name="x")
+                ),
+            ],
+            result=ast.Statements(
+                    expressions=[],
+                    result=ast.Identifier(name="y")
+                ),
+        )
+    ]
+
+
 def test_binary_op_should_be_followed_by_int_literal_or_identifier() -> None:
     tokens = tokenize("a + b +")
     try:
@@ -528,5 +846,49 @@ def test_parse_simple_while_expr_missing_semicolon() -> None:
     except ParsingException as e:
         assert str(
             e) == "L(line=4, column=9): consecutive result expressions are not allowed."
+    else:
+        assert False, "Expected ParsingException was not raised"
+
+
+def test_parse_invalid_scope_in_if_expression() -> None:
+    tokens = tokenize("""if x > y then var z = 10;""")
+    try:
+        parse(tokens)
+    except ParsingException as e:
+        assert str(
+            e) == "L(line=1, column=25): variable declarations are not allowed as a part of 'then' condition."
+    else:
+        assert False, "Expected ParsingException was not raised"
+
+
+def test_parse_invalid_scope_in_while_expression() -> None:
+    tokens = tokenize("""while var x = 10 do {x=x+1}""")
+    try:
+        parse(tokens)
+    except ParsingException as e:
+        assert str(
+            e) == "L(line=1, column=18): variable declarations are not allowed as a part of 'while' condition."
+    else:
+        assert False, "Expected ParsingException was not raised"
+
+
+def test_parse_invalid_block_statements_1() -> None:
+    tokens = tokenize("""{ a b }""")
+    try:
+        parse(tokens)
+    except ParsingException as e:
+        assert str(
+            e) == "L(line=1, column=5): incorrect expression: identifier should be followed by a binary operator or a statement."
+    else:
+        assert False, "Expected ParsingException was not raised"
+
+
+def test_parse_invalid_block_statements_2() -> None:
+    tokens = tokenize("""{ if true then { a } b c }""")
+    try:
+        parse(tokens)
+    except ParsingException as e:
+        assert str(
+            e) == "L(line=1, column=24): incorrect expression: identifier should be followed by a binary operator or a statement."
     else:
         assert False, "Expected ParsingException was not raised"
