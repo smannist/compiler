@@ -1,6 +1,6 @@
 import sys
 import compiler.ast as ast
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Callable
 
 
 type Value = int | bool | None
@@ -8,7 +8,7 @@ type Value = int | bool | None
 
 class SymTab:
     def __init__(self) -> None:
-        self.symbols: Dict[Optional[str], Any] = {
+        self.symbols: Dict[str, Any] = {
             "unary_-": lambda a: -a,
             "unary_not": lambda a: not a,
             "+": lambda a, b: a + b,
@@ -17,7 +17,7 @@ class SymTab:
             "True": True,
             "None": None,
         }
-        self.functions: Dict[str, Any] = {
+        self.functions: Dict[str, Callable] = {
             "print_int": lambda a: print(a),
             "print_bool": lambda a: print("true" if a else "false"),
             "read_int": lambda: int(sys.stdin.readline().strip())
