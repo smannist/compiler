@@ -36,10 +36,6 @@ def test_interpret_greater_than() -> None:
     assert interpret(parse(tokenize("2 > 4")), SymTab()) == False
 
 
-def test_interpret_greater_than() -> None:
-    assert interpret(parse(tokenize("2 > 4")), SymTab()) == False
-
-
 def test_interpret_LEQ() -> None:
     assert interpret(parse(tokenize("2 <= 4")), SymTab()) == True
 
