@@ -1,9 +1,9 @@
 import sys
 import compiler.ast as ast
-from typing import Any, Optional, Dict, Callable
+from typing import Any, Optional, Dict, Callable, Union
 
 
-type Value = int | bool | None
+type Value = Union[int, bool, None, Callable]
 
 
 class SymTab:
@@ -13,6 +13,17 @@ class SymTab:
             "unary_not": lambda a: not a,
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
+            "%": lambda a, b: a % b,
+            "*": lambda a, b: a * b,
+            "/": lambda a, b: a / b,
+            "==": lambda a, b: a == b,
+            "!=": lambda a, b: a != b,
+            "<": lambda a, b: a < b,
+            "<=": lambda a, b: a <= b,
+            ">": lambda a, b: a > b,
+            ">=": lambda a, b: a >= b,
+            "and": lambda a, b: a and b,
+            "or": lambda a, b: a or b,
             "False": False,
             "True": True,
             "None": None,
@@ -50,6 +61,7 @@ def interpret(node: Optional[ast.Expression], symbol_table: SymTab) -> Value:
                     return value
                 else:
                     raise TypeError(f"Left-hand side of assignment must be an identifier, got {type(node.left)}")
+            operator = symbol_table.lookup(node.op)
             a = interpret(node.left, symbol_table)
             b = interpret(node.right, symbol_table)
             operator = symbol_table.lookup(node.op)
