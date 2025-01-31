@@ -8,14 +8,14 @@ type Value = int | bool | None
 
 class SymTab:
     def __init__(self) -> None:
-        self.symbols: Dict[str, Any] = {
+        self.symbols: Dict[Optional[str], Any] = {
             "unary_-": lambda a: -a,
             "unary_not": lambda a: not a,
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
             "False": False,
             "True": True,
-            None: None,
+            "None": None,
         }
         self.functions: Dict[str, Any] = {
             "print_int": lambda a: print(a),
@@ -26,7 +26,7 @@ class SymTab:
     def declare(self, symbol: str, value: Any) -> None:
         self.symbols[symbol] = value
 
-    def lookup(self, value: str) -> Optional[Any]:
+    def lookup(self, value: str) -> Any:
         if value in self.symbols:
             return self.symbols[value]
         if value in self.functions:
@@ -44,9 +44,12 @@ def interpret(node: Optional[ast.Expression], symbol_table: SymTab) -> Value:
             return symbol_table.lookup(node.name)
         case ast.BinaryOp():
             if node.op == "=":
-                value = interpret(node.right, symbol_table)
-                symbol_table.declare(node.left.name, value)
-                return value
+                if isinstance(node.left, ast.Identifier):
+                    value = interpret(node.right, symbol_table)
+                    symbol_table.declare(node.left.name, value)
+                    return value
+                else:
+                    raise TypeError(f"Left-hand side of assignment must be an identifier, got {type(node.left)}")
             a = interpret(node.left, symbol_table)
             b = interpret(node.right, symbol_table)
             operator = symbol_table.lookup(node.op)
@@ -68,14 +71,15 @@ def interpret(node: Optional[ast.Expression], symbol_table: SymTab) -> Value:
                 node.identifier.name,
                 interpret(node.initializer, symbol_table)
             )
+            return None
         case ast.Statements():
             for expr in node.expressions:
                 interpret(expr, symbol_table)
                 if node.result is not None:
-                    if isinstance(node.result,
-                                  ast.Literal) and node.result.value is None:
-                        return symbol_table.lookup(node.result.value)
+                    if isinstance(node.result, ast.Literal) and node.result.value is None:
+                        return symbol_table.lookup(str(node.result.value))
                     else:
                         return interpret(node.result, symbol_table)
+            return None
         case _:
             raise ValueError(f"Unsupported node type: {type(node).__name__}")

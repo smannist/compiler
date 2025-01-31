@@ -1,3 +1,4 @@
+from pytest import CaptureFixture
 from compiler.parser import parse
 from compiler.tokenizer import tokenize
 from compiler.interpreter import interpret, SymTab
@@ -23,13 +24,13 @@ def test_interpret_var_decl() -> None:
     assert interpret(parse(tokenize("x = 123")), SymTab()) == 123
 
 
-def test_fun_print_int_as_result_expression(capfd) -> None:
+def test_fun_print_int_as_result_expression(capfd: CaptureFixture[str]) -> None:
     interpret(parse(tokenize("x = 123; y = 200; print_int(x)")), SymTab())
     captured = capfd.readouterr()
     assert captured.out == "123\n"
 
 
-def test_fun_print_int_without_expression(capfd) -> None:
+def test_fun_print_int_without_expression(capfd: CaptureFixture[str]) -> None:
     interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), SymTab())
     captured = capfd.readouterr()
     assert captured.out == ""
