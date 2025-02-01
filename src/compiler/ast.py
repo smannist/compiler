@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
 from typing_extensions import Optional, List
 from compiler.tokenizer import Location
+from compiler.types import Type, Unit
 
 
 @dataclass
 class Expression:
     """Base class for AST nodes representing expressions."""
     location: Optional[Location]
+    type: Type = field(kw_only=True, default=Unit())
 
 
 @dataclass
