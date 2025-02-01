@@ -838,6 +838,50 @@ def test_parse_variable_decl_at_top_level_semi() -> None:
         )
 
 
+def test_parse_nested_statements_with_variable_decls() -> None:
+    source_code = """
+    var x = 2;
+    {
+        var x = 1;
+        print_int(x);
+    }
+    print_int(x);
+    """
+    tokens = tokenize(source_code)
+    assert parse(tokens) == ast.Statements(
+        expressions=[
+            ast.LiteralVarDecl(
+                identifier=ast.Identifier(name="x", location=Location(line=2, column=9)),
+                initializer=ast.Literal(value=2, location=Location(line=2, column=13)),
+                location=Location(line=2, column=16)
+            ),
+            ast.Statements(
+                expressions=[
+                    ast.LiteralVarDecl(
+                        identifier=ast.Identifier(name="x", location=Location(line=3, column=13)),
+                        initializer=ast.Literal(value=1, location=Location(line=3, column=17)),
+                        location=Location(line=3, column=20)
+                    ),
+                    ast.FuncExpr(
+                        identifier=ast.Identifier(name="print_int", location=Location(line=4, column=13)),
+                        arguments=[ast.Identifier(name="x", location=Location(line=4, column=23))],
+                        location=Location(line=4, column=13)
+                    )
+                ],
+                result=ast.Literal(value=None, location=None),
+                location=Location(line=5, column=6)
+            ),
+            ast.FuncExpr(
+                identifier=ast.Identifier(name="print_int", location=Location(line=6, column=9)),
+                arguments=[ast.Identifier(name="x", location=Location(line=6, column=19))],
+                location=Location(line=6, column=9)
+            )
+        ],
+        result=ast.Literal(value=None, location=None),
+        location=Location(line=7, column=6)
+    )
+
+
 def test_parse_while_block_with_vars_inside_no_semi_result_expr() -> None:
     tokens = tokenize("""
         while x > y do {
@@ -888,19 +932,29 @@ def test_parse_nested_blocks_result_block_iden() -> None:
         { a }
         { b }
     }"""
+
     tokens = tokenize(source_code)
     assert parse(tokens) == ast.Statements(
-            expressions=[
-                ast.Statements(
-                    expressions=[], result=ast.Identifier(
-                        name="a", location=Location(
-                            line=0, column=0)), location=Location(
-                        line=0, column=0))], result=ast.Statements(
-                expressions=[], result=ast.Identifier(
-                    name="b", location=Location(
-                        line=0, column=0)), location=Location(
-                    line=0, column=0)), location=Location(
-                line=0, column=0))
+        expressions=[
+            ast.Statements(
+                expressions=[],
+                result=ast.Identifier(
+                    name="a",
+                    location=Location(line=0, column=0)
+                ),
+                location=Location(line=0, column=0)
+            )
+        ],
+        result=ast.Statements(
+            expressions=[],
+            result=ast.Identifier(
+                name="b",
+                location=Location(line=0, column=0)
+            ),
+            location=Location(line=0, column=0)
+        ),
+        location=Location(line=0, column=0)
+    )
 
 
 def test_parse_if_expr_with_block_then_no_semi_inside_curl_then() -> None:
@@ -1048,6 +1102,7 @@ def test_parse_curly_declaration_2() -> None:
 
 def test_parse_curly_declaration_3() -> None:
     tokens = tokenize("{ { x } { y } }")
+    print(parse(tokens))
     assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.Statements(

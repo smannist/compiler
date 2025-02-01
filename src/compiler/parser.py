@@ -11,9 +11,8 @@ BINARY_OPERATORS = [
     ["+", "-"],
     ["*", "/", "%"]
 ]
+
 UNARY_OPERATORS = ["-", "not"]
-MAX_PRECEDENCE_LEVEL = len(BINARY_OPERATORS) - 1
-MIN_PRECEDENCE_LEVEL = 0
 
 
 class ParsingException(Exception):
@@ -138,31 +137,19 @@ def parse(tokens: list[Token]) -> ast.Expression:
             body=body,
             location=token.loc)
 
-    # for anything outside block e.g. top level vars
-    def parse_literal_var_decl_top_level() -> list[ast.LiteralVarDecl]:
-        var_declarations = []
-        while peek().text == "var":
-            consume("var")
-            identifier = parse_identifier()
-            consume("=")
-            initializer = parse_literal()
-            token = consume(";")
-            var_declarations.append(
-                ast.LiteralVarDecl(
-                    identifier=identifier,
-                    initializer=initializer,
-                    location=token.loc))
-        return var_declarations
-
-    def parse_literal_var_decl_inside_block() -> ast.LiteralVarDecl:  # for vars inside blocks
+    def parse_literal_var_decl(
+            require_semicolon: bool = False) -> ast.LiteralVarDecl:
         consume("var")
         identifier = parse_identifier()
         token = consume("=")
         initializer = parse_literal()
+        if require_semicolon:
+            token = consume(";")
         return ast.LiteralVarDecl(
             identifier=identifier,
             initializer=initializer,
-            location=token.loc)
+            location=token.loc
+        )
 
     def parse_unary_op() -> ast.UnaryOp:
         if peek().text in UNARY_OPERATORS:
@@ -175,8 +162,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
         raise ParsingException(f"{peek().loc}: expected unary operator")
 
     def parse_expression(
-            precedence_level: int = MIN_PRECEDENCE_LEVEL) -> ast.Expression:
-        if precedence_level > MAX_PRECEDENCE_LEVEL:
+            precedence_level: int = 0) -> ast.Expression:
+        if precedence_level > len(BINARY_OPERATORS) - 1:
             return parse_factor()
 
         left = parse_expression(precedence_level + 1)
@@ -214,8 +201,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             case Token(type="keyword", text="while"):
                 return parse_while_expr()
             case Token(type="keyword", text="var"):
-                # used for vars inside blocks for now
-                return parse_literal_var_decl_inside_block()
+                return parse_literal_var_decl()
             case _:
                 raise ParsingException(
                     f"{token.loc}: expected an integer literal or an identifier"
@@ -253,52 +239,46 @@ def parse(tokens: list[Token]) -> ast.Expression:
         token = consume("}")
         return ast.Statements(expressions=expressions, location=token.loc)
 
-    def parse_source_code() -> ast.Expression:
+    def parse_source_code() -> ast.Expression | ast.Statements:
         if not tokens:
             raise EmptyListException("token list must not be empty.")
 
-        top_level_vars: list[ast.Expression] = []
-        expressions: list[ast.Expression] = []
+        items: list[tuple[ast.Expression, bool]] = []
 
         while peek().type != "end":
             if peek().text == "var":
-                var_decls = parse_literal_var_decl_top_level()
-                top_level_vars.extend(var_decls)
+                items.append(
+                    (parse_literal_var_decl(
+                        require_semicolon=True), True))
             else:
                 expr = parse_expression()
-                if peek().text == ";" and not expressions:
+                terminated = False
+                if peek().text == ";":
+                    terminated = True
                     consume(";")
-                    expressions.append(
-                        ast.Statements(
-                            expressions=[expr],
-                            location=peek().loc))
-                elif expressions:
-                    # these might cause issue later
-                    if isinstance(expressions[0], ast.Statements) and peek().text == ";":
-                        consume(";")
-                        expressions[0].expressions.append(expr)
-                        expressions[0].result = ast.Literal(value=None, location=None)
-                    elif isinstance(expressions[0], ast.Statements):
-                        expressions[0].result = expr
-                else:
-                    expressions.append(expr)
+                items.append((expr, terminated))
 
-        if top_level_vars:
-            if not expressions:
-                return ast.Statements(
-                    expressions=top_level_vars,
-                    location=peek().loc)
-            elif isinstance(expressions[0], ast.Statements):
-                for var_decl in top_level_vars[::-1]:
-                    expressions[0].expressions.insert(0, var_decl)
+        if len(items) == 1 and not items[0][1]:
+            return items[0][0]
+
+        if items:
+            last_expr, last_terminated = items[-1]
+            if last_terminated:
+                result_expr: ast.Expression = ast.Literal(
+                    value=None, location=None)
+                expressions = [expr for (expr, _) in items]
             else:
-                statements = ast.Statements(
-                    expressions=expressions, location=peek().loc)
-                for var_decl in top_level_vars[::-1]:
-                    statements.expressions.insert(0, var_decl)
-                return statements
+                result_expr = last_expr
+                expressions = [expr for (expr, _) in items[:-1]]
+        else:
+            result_expr = ast.Literal(value=None, location=None)
+            expressions = []
 
-        return expressions[0]
+        return ast.Statements(
+            expressions=expressions,
+            result=result_expr,
+            location=peek().loc
+        )
 
     def is_unary() -> bool:
         if pos == 0:

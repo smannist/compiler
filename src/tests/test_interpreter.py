@@ -68,15 +68,24 @@ def test_interpret_var_decl() -> None:
     assert interpret(parse(tokenize("x = 123")), SymTab()) == 123
 
 
-def test_fun_print_int_as_result_expression(capfd: CaptureFixture[str]) -> None:
-    interpret(parse(tokenize("x = 123; y = 200; print_int(x)")), SymTab())
-    captured = capfd.readouterr()
-    assert captured.out == "123\n"
-
-
-def test_fun_print_int_without_expression(capfd: CaptureFixture[str]) -> None:
+def test_fun_print_int(capfd: CaptureFixture[str]) -> None:
     interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), SymTab())
-    captured = capfd.readouterr()
-    assert captured.out == ""
+    assert capfd.readouterr().out == "123\n"
     assert interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), SymTab()) == None
 
+
+def test_interpret_variable_shadowing(capfd: CaptureFixture[str]) -> None:
+    source_code = """
+    {
+        var x = 1;
+        {
+            var x = 2; # shadows the x in the outer scope
+            var y = 3; # local to this inner block scope
+            print_int(x); # should print 2
+            print_int(y); # should print 3
+        }
+        print_int(x); # should print 1
+    }
+    """
+    interpret(parse(tokenize(source_code)), SymTab())
+    assert capfd.readouterr().out == "2\n3\n1\n"
