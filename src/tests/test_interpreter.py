@@ -104,7 +104,7 @@ def test_short_circuiting_2() -> None:
     source_code = """
         var evaluated_right_hand_side = true;
         true or { evaluated_right_hand_side = true; true };
-        evaluated_right_hand_side  # Should be false
+        evaluated_right_hand_side  # Should be true
     """
     assert interpret(parse(tokenize(source_code)), SymTab()) == True
 
