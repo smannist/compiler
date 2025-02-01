@@ -1102,7 +1102,6 @@ def test_parse_curly_declaration_2() -> None:
 
 def test_parse_curly_declaration_3() -> None:
     tokens = tokenize("{ { x } { y } }")
-    print(parse(tokens))
     assert parse(tokens) == ast.Statements(
             expressions=[
                 ast.Statements(

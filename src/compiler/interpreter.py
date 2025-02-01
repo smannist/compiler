@@ -26,8 +26,6 @@ class SymTab:
                 "<=": lambda a, b: a <= b,
                 ">": lambda a, b: a > b,
                 ">=": lambda a, b: a >= b,
-                "and": lambda a, b: a and b,
-                "or": lambda a, b: a or b,
                 "False": False,
                 "True": True,
                 "None": None,
@@ -74,8 +72,19 @@ def interpret(node: Optional[ast.Expression], symbol_table: SymTab) -> Value:
                     symbol_table.set(node.left.name, value)
                     return value
                 else:
-                    raise TypeError(
-                        "Left-hand side of assignment must be an identifier")
+                    raise TypeError("Left-hand side of assignment must be an identifier")
+            elif node.op == "or":
+                left = interpret(node.left, symbol_table)
+                if left:
+                    return left
+                else:
+                    return interpret(node.right, symbol_table)
+            elif node.op == "and":
+                left = interpret(node.left, symbol_table)
+                if not left:
+                    return left
+                else:
+                    return interpret(node.right, symbol_table)
             else:
                 a = interpret(node.left, symbol_table)
                 b = interpret(node.right, symbol_table)
@@ -109,6 +118,11 @@ def interpret(node: Optional[ast.Expression], symbol_table: SymTab) -> Value:
                 interpret(expr, local_scope)
             if node.result is not None:
                 return interpret(node.result, local_scope)
+            return None
+
+        case ast.WhileExpr():
+            while interpret(node.condition, symbol_table):
+                interpret(node.body, symbol_table)
             return None
 
         case _:

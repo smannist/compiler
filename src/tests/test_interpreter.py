@@ -89,3 +89,33 @@ def test_interpret_variable_shadowing(capfd: CaptureFixture[str]) -> None:
     """
     interpret(parse(tokenize(source_code)), SymTab())
     assert capfd.readouterr().out == "2\n3\n1\n"
+
+
+def test_short_circuiting_1() -> None:
+    source_code = """
+        var evaluated_right_hand_side = false;
+        true or { evaluated_right_hand_side = true; true };
+        evaluated_right_hand_side  # Should be false
+    """
+    assert interpret(parse(tokenize(source_code)), SymTab()) == False
+
+
+def test_short_circuiting_2() -> None:
+    source_code = """
+        var evaluated_right_hand_side = true;
+        true or { evaluated_right_hand_side = true; true };
+        evaluated_right_hand_side  # Should be false
+    """
+    assert interpret(parse(tokenize(source_code)), SymTab()) == True
+
+
+def test_interpret_while_expr(capfd: CaptureFixture[str]) -> None:
+    source_code = """
+    x = 1;
+    while x < 100 do {
+        x = x + 1;
+    };
+    print_int(x);
+    """
+    interpret(parse(tokenize(source_code)), SymTab())
+    assert capfd.readouterr().out == "100\n"
