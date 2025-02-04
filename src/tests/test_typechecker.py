@@ -5,11 +5,11 @@ from compiler.types import Int, Unit
 
 
 def test_typecheck_simple_plus_operation_without_semi() -> None:
-    assert typecheck(parse(tokenize("2 + 3")), SymTab()) == Int()
+    assert typecheck(parse(tokenize("2 + 3")), SymTab()) == Int
 
 
 def test_typecheck_simple_plus_operation_with_semi() -> None:
-    assert typecheck(parse(tokenize("2 + 3;")), SymTab()) == Unit()
+    assert typecheck(parse(tokenize("2 + 3;")), SymTab()) == Unit
 
 
 #def test_typecheck_one_var_decl_sum() -> None:

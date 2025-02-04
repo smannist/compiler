@@ -8,7 +8,7 @@ from compiler.types import Type, Unit
 class Expression:
     """Base class for AST nodes representing expressions."""
     location: Optional[Location]
-    type: Type = field(kw_only=True, default=Unit())
+    type: Type = field(kw_only=True, default=Unit)
 
 
 @dataclass

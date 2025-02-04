@@ -7,17 +7,17 @@ class Type:
 
 
 @dataclass(frozen=True)
-class Int(Type):
+class IntType(Type):
     pass
 
 
 @dataclass(frozen=True)
-class Bool(Type):
+class BoolType(Type):
     pass
 
 
 @dataclass(frozen=True)
-class Unit(Type):
+class UnitType(Type):
     pass
 
 
@@ -25,3 +25,8 @@ class Unit(Type):
 class FunType(Type):
     param_t: list[Type]
     return_t: Type
+
+
+Int = IntType()
+Bool = BoolType()
+Unit = UnitType()

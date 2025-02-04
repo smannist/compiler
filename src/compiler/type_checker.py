@@ -13,10 +13,7 @@ class SymTab:
 
         if parent is None:
             self.symbols.update({
-                "+": lambda t1, t2: (
-                    Int() if isinstance(t1, Int) and isinstance(t2, Int)
-                    else Unit()
-                )
+                "+": lambda t1, t2: (Int if t1 is Int and t2 is Int else Unit)
             })
 
     def lookup(self, name: str) -> Any:
@@ -39,11 +36,11 @@ def typecheck(node: ast.Expression, symbol_table: SymTab) -> Type:
     match node:
         case ast.Literal():
             if isinstance(node.value, int):
-                return Int()
+                return Int
             if isinstance(node.value, bool):
-                return Bool()
+                return Bool
             if node.value is None:
-                return Unit()
+                return Unit
             raise TypeError(f"Unsupported literal type: {node.value}")
 
         case ast.Identifier():
@@ -55,16 +52,15 @@ def typecheck(node: ast.Expression, symbol_table: SymTab) -> Type:
                 type_val=typeresult(node.initializer, symbol_table),
                 local=True
             )
-            return Unit()
+            return Unit
 
         case ast.BinaryOp():
             t1 = typeresult(node.left, symbol_table)
             t2 = typeresult(node.right, symbol_table)
             op = symbol_table.lookup(node.op)
-            t = op(t1, t2)
-            if isinstance(t, Int):
-                return t
-            raise TypeError(f"Expected an integer got {t}")
+            if op(t1, t2) is Int:
+                return op(t1, t2)
+            raise TypeError(f"BinaryOperation is only allowed between integers.")
 
         case ast.Statements():
             local_scope = SymTab(parent=symbol_table)
@@ -72,7 +68,7 @@ def typecheck(node: ast.Expression, symbol_table: SymTab) -> Type:
                 typeresult(expr, local_scope)
             if node.result is not None:
                 return typeresult(node.result, local_scope)
-            return Unit()
+            return Unit
 
         case _:
             raise Exception(
