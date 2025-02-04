@@ -12,6 +12,14 @@ def test_typecheck_simple_plus_operation_with_semi() -> None:
     assert typecheck(parse(tokenize("2 + 3;")), SymTab()) == Unit
 
 
+def test_typecheck_simple_minus_operation_without_semi() -> None:
+    assert typecheck(parse(tokenize("2 - 3")), SymTab()) == Int
+
+
+def test_typecheck_simple_minus_operation_with_semi() -> None:
+    assert typecheck(parse(tokenize("2 - 3;")), SymTab()) == Unit
+
+
 #def test_typecheck_one_var_decl_sum() -> None:
 #    assert typecheck(parse(tokenize("var x = 123; x + 200")), SymTab()) == Int()
 

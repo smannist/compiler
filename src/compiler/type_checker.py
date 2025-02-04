@@ -12,9 +12,10 @@ class SymTab:
         self.symbols: dict[str, Type | Callable] = {}
 
         if parent is None:
-            self.symbols.update({
-                "+": lambda t1, t2: (Int if t1 is Int and t2 is Int else Unit)
-            })
+            arith_op = lambda t1, t2: Int if t1 is Int and t2 is Int else Unit
+            operators = ["+", "-", "*", "/", "%"]
+            self.symbols.update({op: arith_op for op in operators})
+
 
     def lookup(self, name: str) -> Any:
         if name in self.symbols:
