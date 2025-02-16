@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -23,8 +23,8 @@ class UnitType(Type):
 
 @dataclass(frozen=True)
 class FunType(Type):
-    param_t: list[Type]
     return_t: Type
+    param_t: list[Type] = field(default_factory=list)
 
 
 Int = IntType()

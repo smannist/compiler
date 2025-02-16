@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing_extensions import Optional, List
+from typing import Optional, List
 from compiler.tokenizer import Location
 from compiler.types import Type, Unit
 
