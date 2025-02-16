@@ -12,13 +12,13 @@ class SymTab:
         if parent is None:
             arith_op = lambda t1, t2: Int if t1 is Int and t2 is Int else Unit
             cmp_op = lambda t1, t2: Bool if t1 is Int and t2 is Int else Unit
-
-            arith_ops = ["+", "-", "*", "/", "%"]
-            cmp_ops = ["<", "<=", ">", ">="]
+            eq_op = lambda t1, t2: Bool if t1 is t2 else Unit
 
             self.symbols.update({
-                **{op: arith_op for op in arith_ops},
-                **{op: cmp_op for op in cmp_ops},
+                **{op: arith_op for op in ["+", "-", "*", "/", "%"]},
+                **{op: cmp_op for op in ["<", "<=", ">", ">="]},
+                "==": eq_op,
+                "!=": eq_op,
                 "unary_-": lambda t: Int if t is Int else Unit,
                 "unary_not": lambda t: Bool if t is Bool else Unit
             })
@@ -72,8 +72,7 @@ def typecheck(node: ast.Expression, symbol_table: SymTab) -> Type:
         case ast.BinaryOp():
             if node.op == "=":
                 if not isinstance(node.left, ast.Identifier):
-                    raise TypeError(
-                        "Left-hand side of assignment must be an identifier")
+                    raise TypeError("Left-hand side of assignment must be an identifier")
                 declared_type = symbol_table.lookup(node.left.name)
                 assigned_type = typeresult(node.right, symbol_table)
                 if declared_type is not assigned_type:
@@ -82,21 +81,14 @@ def typecheck(node: ast.Expression, symbol_table: SymTab) -> Type:
                         f"but got {assigned_type}"
                     )
                 return assigned_type
-            if node.op in ["==", "!="]:
+            else:
                 t1 = typeresult(node.left, symbol_table)
                 t2 = typeresult(node.right, symbol_table)
-                if t1 is not t2:
-                    raise TypeError(
-                        f"Operands of '{node.op}' must have the same type: got {t1} and {t2}"
-                    )
-                return Bool
-            t1 = typeresult(node.left, symbol_table)
-            t2 = typeresult(node.right, symbol_table)
-            op = symbol_table.lookup(node.op)
-            result = op(t1, t2)
-            if result is Unit:
-                raise TypeError("Invalid types for binary operation")
-            return result
+                op = symbol_table.lookup(node.op)
+                result = op(t1, t2)
+                if result is Unit:
+                    raise TypeError(f"Invalid types for binary operation '{node.op}'")
+                return result
 
         case ast.UnaryOp():
             operand_type = typeresult(node.operand, symbol_table)

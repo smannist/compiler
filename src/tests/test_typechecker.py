@@ -72,7 +72,7 @@ def test_typecheck_incorrect_bool_comparison() -> None:
     try:
         typecheck(parse(tokenize("var y = false; var x = 123; x == y")), SymTab())
     except TypeError as e:
-        assert str(e) == "Operands of '==' must have the same type: got IntType() and BoolType()"
+        assert str(e) == "Invalid types for binary operation '=='"
     else:
         assert False, "Expected TypeError was not raised"
 
@@ -86,7 +86,7 @@ def test_typecheck_incorrect_not_types() -> None:
         assert False, "Expected TypeError was not raised"
 
 
-def test_typecheck_incorrect_minues_types() -> None:
+def test_typecheck_incorrect_minus_types() -> None:
     try:
         typecheck(parse(tokenize("-false")), SymTab())
     except TypeError as e:
