@@ -102,8 +102,7 @@ def typecheck(
             local_scope = SymTab[Any](parent=symbol_table)
             for expr in node.expressions:
                 typeresult(expr, local_scope)
-            return typeresult(node.result,
-                              local_scope) if node.result is not None else Unit
+            return typeresult(node.result, local_scope) if node.result is not None else Unit
 
         case _:
             raise Exception(
