@@ -1,77 +1,81 @@
 from pytest import CaptureFixture
 from compiler.parser import parse
 from compiler.tokenizer import tokenize
-from compiler.interpreter import interpret, SymTab
+from compiler.interpreter import interpret
+from compiler.symtab import build_interpreter_symtab
+
+
+symtab = build_interpreter_symtab()
 
 
 def test_interpret_basic_sum() -> None:
-    assert interpret(parse(tokenize("2 + 3")), SymTab()) == 5
+    assert interpret(parse(tokenize("2 + 3")), symtab) == 5
 
 
 def test_interpret_basic_sum_with_unary() -> None:
-    assert interpret(parse(tokenize("-2 + 3")), SymTab()) == 1
+    assert interpret(parse(tokenize("-2 + 3")), symtab) == 1
 
 
 def test_interpret_basic_sub_with_unaries() -> None:
-    assert interpret(parse(tokenize("-2 - -4")), SymTab()) == 2
+    assert interpret(parse(tokenize("-2 - -4")), symtab) == 2
 
 
 def test_interpret_basic_division() -> None:
-    assert interpret(parse(tokenize("8 / 2")), SymTab()) == 4
+    assert interpret(parse(tokenize("8 / 2")), symtab) == 4
 
 
 def test_interpret_basic_multi() -> None:
-    assert interpret(parse(tokenize("8 * 2")), SymTab()) == 16
+    assert interpret(parse(tokenize("8 * 2")), symtab) == 16
 
 
 def test_interpret_basic_modulo() -> None:
-    assert interpret(parse(tokenize("2 % 2")), SymTab()) == 0
+    assert interpret(parse(tokenize("2 % 2")), symtab) == 0
 
 
 def test_interpret_less_than() -> None:
-    assert interpret(parse(tokenize("2 < 4")), SymTab()) == True
+    assert interpret(parse(tokenize("2 < 4")), symtab) == True
 
 
 def test_interpret_greater_than() -> None:
-    assert interpret(parse(tokenize("2 > 4")), SymTab()) == False
+    assert interpret(parse(tokenize("2 > 4")), symtab) == False
 
 
 def test_interpret_LEQ() -> None:
-    assert interpret(parse(tokenize("2 <= 4")), SymTab()) == True
+    assert interpret(parse(tokenize("2 <= 4")), symtab) == True
 
 
 def test_interpret_GEQ() -> None:
-    assert interpret(parse(tokenize("2 >= 4")), SymTab()) == False
+    assert interpret(parse(tokenize("2 >= 4")), symtab) == False
 
 
 def test_interpret_is_equal_false() -> None:
-    assert interpret(parse(tokenize("2 == 4")), SymTab()) == False
+    assert interpret(parse(tokenize("2 == 4")), symtab) == False
 
 
 def test_interpret_is_equal_true() -> None:
-    assert interpret(parse(tokenize("2 == 2")), SymTab()) == True
+    assert interpret(parse(tokenize("2 == 2")), symtab) == True
 
 
 def test_interpret_is_not_equal_true() -> None:
-    assert interpret(parse(tokenize("2 != 4")), SymTab()) == True
+    assert interpret(parse(tokenize("2 != 4")), symtab) == True
 
 
 def test_interpret_is_not_equal_false() -> None:
-    assert interpret(parse(tokenize("2 != 2")), SymTab()) == False
+    assert interpret(parse(tokenize("2 != 2")), symtab) == False
 
 
 def test_interpret_var_decl_unit() -> None:
-    assert interpret(parse(tokenize("x = 123;")), SymTab()) == None
+    assert interpret(parse(tokenize("x = 123;")), symtab) == None
 
 
 def test_interpret_var_decl() -> None:
-    assert interpret(parse(tokenize("x = 123")), SymTab()) == 123
+    assert interpret(parse(tokenize("x = 123")), symtab) == 123
 
 
 def test_fun_print_int(capfd: CaptureFixture[str]) -> None:
-    interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), SymTab())
+    interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), symtab)
     assert capfd.readouterr().out == "123\n"
-    assert interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), SymTab()) == None
+    assert interpret(parse(tokenize("x = 123; y = 200; print_int(x);")), symtab) == None
 
 
 def test_interpret_variable_shadowing(capfd: CaptureFixture[str]) -> None:
@@ -87,7 +91,7 @@ def test_interpret_variable_shadowing(capfd: CaptureFixture[str]) -> None:
         print_int(x); # should print 1
     }
     """
-    interpret(parse(tokenize(source_code)), SymTab())
+    interpret(parse(tokenize(source_code)), symtab)
     assert capfd.readouterr().out == "2\n3\n1\n"
 
 
@@ -97,7 +101,7 @@ def test_short_circuiting_1() -> None:
         true or { evaluated_right_hand_side = true; true };
         evaluated_right_hand_side  # Should be false
     """
-    assert interpret(parse(tokenize(source_code)), SymTab()) == False
+    assert interpret(parse(tokenize(source_code)), symtab) == False
 
 
 def test_short_circuiting_2() -> None:
@@ -106,7 +110,7 @@ def test_short_circuiting_2() -> None:
         true or { evaluated_right_hand_side = true; true };
         evaluated_right_hand_side  # Should be true
     """
-    assert interpret(parse(tokenize(source_code)), SymTab()) == True
+    assert interpret(parse(tokenize(source_code)), symtab) == True
 
 
 def test_interpret_while_expr(capfd: CaptureFixture[str]) -> None:
@@ -117,5 +121,5 @@ def test_interpret_while_expr(capfd: CaptureFixture[str]) -> None:
     };
     print_int(x);
     """
-    interpret(parse(tokenize(source_code)), SymTab())
+    interpret(parse(tokenize(source_code)), symtab)
     assert capfd.readouterr().out == "100\n"
