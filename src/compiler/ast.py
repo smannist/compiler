@@ -73,5 +73,5 @@ class WhileExpr(Expression):
 class LiteralVarDecl(Expression):
     """AST node which represents a literal variable declaration."""
     identifier: Identifier
-    initializer: Literal
+    initializer: Expression
     as_expression: bool = False
