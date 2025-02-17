@@ -30,7 +30,7 @@ TOKEN_PATTERNS = {
     "bool_literal": r'\b(true|false)\b',
     "unary_op": r'\bnot\b',
     "binary_op": r'and|or|!=|==|<=|>=|<|>|\%=?|\+=?|\/=?|\*=?|\-=?|\=(?!\d)',
-    "keyword": r'\bvar|while|if|else|then|do|Int\b',
+    "keyword": r'\bvar|while|if|else|then|do|Int|Bool\b',
     "punctuation": r'[(),;{}:]',
     "newline": r'\n',
     "whitespace": r'[ \t]+',

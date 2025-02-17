@@ -1,5 +1,6 @@
 import compiler.ast as ast
 from compiler.tokenizer import Token
+from compiler.types import Int, Bool, Unit, Type
 
 # bottom level has highest precedence
 BINARY_OPERATORS = [
@@ -137,19 +138,31 @@ def parse(tokens: list[Token]) -> ast.Expression:
             body=body,
             location=token.loc)
 
-    def parse_literal_var_decl(
-            require_semicolon: bool = False) -> ast.LiteralVarDecl:
+    def parse_literal_var_decl(require_semicolon: bool = False) -> ast.LiteralVarDecl:
         consume("var")
         identifier = parse_identifier()
-        token = consume("=")
-        initializer = parse_literal()
+        declared_type = parse_type() if peek().text == ":" else Unit
+        consume("=")
+        initializer = parse_expression()
         if require_semicolon:
-            token = consume(";")
+            consume(";")
         return ast.LiteralVarDecl(
             identifier=identifier,
             initializer=initializer,
-            location=token.loc
+            type=declared_type,
+            location=identifier.location
         )
+
+    def parse_type() -> Type:
+        consume(":")
+        token = consume()
+        if token.text == "Int":
+            return Int
+        elif token.text == "Bool":
+            return Bool
+        elif token.text == "Unit":
+            return Unit
+        raise ParsingException(f"{token.loc}: unknown literal type {token.text}")
 
     def parse_unary_op() -> ast.UnaryOp:
         if peek().text in UNARY_OPERATORS:
@@ -246,36 +259,30 @@ def parse(tokens: list[Token]) -> ast.Expression:
         items: list[tuple[ast.Expression, bool]] = []
 
         while peek().type != "end":
-            if peek().text == "var":
-                items.append(
-                    (parse_literal_var_decl(
-                        require_semicolon=True), True))
+            expr = parse_expression()
+            if peek().text == ";":
+                consume(";")
+                items.append((expr, True))
             else:
-                expr = parse_expression()
-                terminated = False
-                if peek().text == ";":
-                    terminated = True
-                    consume(";")
-                items.append((expr, terminated))
+                items.append((expr, False))
 
         if len(items) == 1 and not items[0][1]:
+            if isinstance(items[0][0], ast.LiteralVarDecl):
+                items[0][0].as_expression = True
             return items[0][0]
 
-        if items:
-            last_expr, last_terminated = items[-1]
-            if last_terminated:
-                result_expr: ast.Expression = ast.Literal(
-                    value=None, location=None)
-                expressions = [expr for (expr, _) in items]
-            else:
-                result_expr = last_expr
-                expressions = [expr for (expr, _) in items[:-1]]
+        last_expr, terminated = items[-1]
+        if not terminated:
+            if isinstance(last_expr, ast.LiteralVarDecl):
+                last_expr.as_expression = True
+            result_expr = last_expr
+            exprs = [expr for expr, _ in items[:-1]]
         else:
             result_expr = ast.Literal(value=None, location=None)
-            expressions = []
+            exprs = [expr for expr, _ in items]
 
         return ast.Statements(
-            expressions=expressions,
+            expressions=exprs,
             result=result_expr,
             location=peek().loc
         )

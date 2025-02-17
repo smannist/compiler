@@ -64,12 +64,18 @@ def typecheck(node: ast.Expression, symbol_table: SymTab) -> Type:
             return symbol_table.lookup(node.name)
 
         case ast.LiteralVarDecl():
+            inferred_type = typeresult(node.initializer, symbol_table)
+            if node.type is not Unit and node.type is not inferred_type:
+                raise TypeError(
+                    f"Type mismatch in declaration of '{node.identifier.name}': "
+                    f"declared type {node.type} but initializer has type {inferred_type}"
+                )
             symbol_table.set(
                 name=node.identifier.name,
-                type_val=typeresult(node.initializer, symbol_table),
+                type_val=inferred_type,
                 local=True
             )
-            return Unit
+            return inferred_type if node.as_expression else Unit
 
         case ast.BinaryOp():
             if node.op == "=":

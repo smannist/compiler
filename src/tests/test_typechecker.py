@@ -72,6 +72,18 @@ def test_typecheck_and_operator() -> None:
     assert typecheck(parse(tokenize("true or false")), SymTab()) == Bool
 
 
+def test_typecheck_typed_variabled_decl_int_no_semi() -> None:
+    assert typecheck(parse(tokenize("var x: Int = 1 + 1")), SymTab()) == Int
+
+
+def test_typecheck_typed_variabled_decl_int_semi() -> None:
+    assert typecheck(parse(tokenize("var x: Int = 1 + 1;")), SymTab()) == Unit
+
+
+def test_typecheck_typed_variabled_decl_bool_no_semi() -> None:
+    assert typecheck(parse(tokenize("var x: Bool = false")), SymTab()) == Bool
+
+
 def test_typecheck_incorrect_bool_comparison() -> None:
     try:
         typecheck(parse(tokenize("var y = false; var x = 123; x == y")), SymTab())

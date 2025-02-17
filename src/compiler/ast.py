@@ -71,6 +71,7 @@ class WhileExpr(Expression):
 
 @dataclass
 class LiteralVarDecl(Expression):
-    """AST node which represents a literal variable"""
+    """AST node which represents a literal variable declaration."""
     identifier: Identifier
     initializer: Literal
+    as_expression: bool = False
