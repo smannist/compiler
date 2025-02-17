@@ -13,10 +13,12 @@ class SymTab:
             arith_op = lambda t1, t2: Int if t1 is Int and t2 is Int else Unit
             cmp_op = lambda t1, t2: Bool if t1 is Int and t2 is Int else Unit
             eq_op = lambda t1, t2: Bool if t1 is t2 else Unit
+            bool_op = lambda t1, t2: Bool if t1 is Bool and t2 is Bool else Unit
 
             self.symbols.update({
                 **{op: arith_op for op in ["+", "-", "*", "/", "%"]},
                 **{op: cmp_op for op in ["<", "<=", ">", ">="]},
+                **{op: bool_op for op in ["and", "or"]},
                 "==": eq_op,
                 "!=": eq_op,
                 "unary_-": lambda t: Int if t is Int else Unit,

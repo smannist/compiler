@@ -68,6 +68,10 @@ def test_if_then_else() -> None:
     assert typecheck(parse(tokenize("var x = 123; var y = 5; if x > 10 then x = 13 else y")), SymTab()) == Int
 
 
+def test_typecheck_and_operator() -> None:
+    assert typecheck(parse(tokenize("true or false")), SymTab()) == Bool
+
+
 def test_typecheck_incorrect_bool_comparison() -> None:
     try:
         typecheck(parse(tokenize("var y = false; var x = 123; x == y")), SymTab())
