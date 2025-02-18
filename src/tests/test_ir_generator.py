@@ -3,6 +3,8 @@ from compiler.tokenizer import tokenize, Location
 from compiler.parser import parse
 from compiler.ir_generator import generate_ir
 from compiler.types import Type
+from compiler.symtab import build_type_symtab
+from compiler.type_checker import annotate_types
 
 
 def test_generate_ir_for_1_plus_2_times_3() -> None:
@@ -12,7 +14,9 @@ def test_generate_ir_for_1_plus_2_times_3() -> None:
         ir.IRVar("*"): Type(),
         ir.IRVar("print_int"): Type(),
     }
-    instructions = generate_ir(root_types, parse(tokenize("1 + 2 * 3")))
+    tree = parse(tokenize("1 + 2 * 3"))
+    annotate_types(tree, build_type_symtab())
+    instructions = generate_ir(root_types, tree)
     expected_instructions = [
         ir.Label(Location(0, 0), "start"),
         ir.LoadIntConst(Location(1, 1), 1, ir.IRVar("x")),

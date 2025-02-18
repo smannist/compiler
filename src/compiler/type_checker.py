@@ -22,7 +22,7 @@ def typecheck(
             return symbol_table.lookup(node.name)
 
         case ast.LiteralVarDecl():
-            inferred_type = typeresult(node.initializer, symbol_table)
+            inferred_type = annotate_types(node.initializer, symbol_table)
             if node.type is not Unit and node.type is not inferred_type:
                 raise TypeError(
                     f"Type mismatch in declaration of '{node.identifier.name}': "
@@ -38,7 +38,7 @@ def typecheck(
                         "Left-hand side of assignment must be an identifier"
                     )
                 declared_type = symbol_table.lookup(node.left.name)
-                assigned_type = typeresult(node.right, symbol_table)
+                assigned_type = annotate_types(node.right, symbol_table)
                 if declared_type is not assigned_type:
                     raise TypeError(
                         f"Assignment type mismatch: variable '{
@@ -46,8 +46,8 @@ def typecheck(
                         )
                 return assigned_type
             else:
-                t1 = typeresult(node.left, symbol_table)
-                t2 = typeresult(node.right, symbol_table)
+                t1 = annotate_types(node.left, symbol_table)
+                t2 = annotate_types(node.right, symbol_table)
                 op = symbol_table.lookup(node.op)
                 result = op(t1, t2)
                 if result is Unit:
@@ -57,7 +57,7 @@ def typecheck(
                 return result
 
         case ast.UnaryOp():
-            operand_type = typeresult(node.operand, symbol_table)
+            operand_type = annotate_types(node.operand, symbol_table)
             op = symbol_table.lookup("unary_" + node.op)
             result_type = op(operand_type)
             if result_type is Unit:
@@ -67,11 +67,11 @@ def typecheck(
             return result_type
 
         case ast.IfExpr():
-            cond_type = typeresult(node.condition, symbol_table)
+            cond_type = annotate_types(node.condition, symbol_table)
             if cond_type is not Bool:
                 raise TypeError("Condition of if must be a boolean")
-            then_type = typeresult(node.then, symbol_table)
-            else_type = typeresult(node.else_, symbol_table)
+            then_type = annotate_types(node.then, symbol_table)
+            else_type = annotate_types(node.else_, symbol_table)
             if then_type is not else_type:
                 raise TypeError(
                     "Both branches of if-then-else must have the same type"
@@ -79,10 +79,10 @@ def typecheck(
             return then_type
 
         case ast.WhileExpr():
-            cond_type = typeresult(node.condition, symbol_table)
+            cond_type = annotate_types(node.condition, symbol_table)
             if cond_type is not Bool:
                 raise TypeError("Condition of while must be a boolean")
-            typeresult(node.body, symbol_table)
+            annotate_types(node.body, symbol_table)
             return Unit
 
         case ast.FuncExpr():
@@ -90,7 +90,7 @@ def typecheck(
             if not isinstance(fun, FunType):
                 raise TypeError(f"{node.identifier.name} is not a function")
             for arg, expected in zip(node.arguments, fun.param_t):
-                actual = typeresult(arg, symbol_table)
+                actual = annotate_types(arg, symbol_table)
                 if actual is not expected:
                     raise TypeError(
                         f"In function {node.identifier.name}: expected argument type "
@@ -101,8 +101,8 @@ def typecheck(
         case ast.Statements():
             local_scope = SymTab[Any](parent=symbol_table)
             for expr in node.expressions:
-                typeresult(expr, local_scope)
-            return typeresult(node.result, local_scope) if node.result is not None else Unit
+                annotate_types(expr, local_scope)
+            return annotate_types(node.result, local_scope) if node.result is not None else Unit
 
         case _:
             raise Exception(
@@ -111,7 +111,7 @@ def typecheck(
             )
 
 
-def typeresult(node: ast.Expression | None, symbol_table: SymTab[Any]) -> Type:
+def annotate_types(node: ast.Expression | None, symbol_table: SymTab[Any]) -> Type:
     if node is None:
         return Unit
     t = typecheck(node, symbol_table)

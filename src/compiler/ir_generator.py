@@ -65,7 +65,7 @@ def generate_ir(
                 var_op = symbol_table.lookup(expression.op)
                 var_left = visit(symbol_table, expression.left)
                 var_right = visit(symbol_table, expression.right)
-                var_result = new_var(Int)
+                var_result = new_var(expression.type)
                 ins.append(
                     ir.Call(
                         loc,
