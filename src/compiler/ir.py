@@ -16,7 +16,7 @@ class IRVar:
 @dataclass(frozen=True)
 class Instruction():
     """Base class for IR instructions."""
-    location: Location
+    location: Location | None
 
     def __str__(self) -> str:
         """Returns a string representation similar to

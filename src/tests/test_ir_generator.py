@@ -2,15 +2,15 @@ from compiler import ir
 from compiler.tokenizer import tokenize, Location
 from compiler.parser import parse
 from compiler.ir_generator import generate_ir
-from compiler.types import Int
+from compiler.types import Type
 
 
-def test_generate_ir_for_1_plus_2_times_3():
+def test_generate_ir_for_1_plus_2_times_3() -> None:
     # root_types dont need correct types atm
     root_types = {
-        ir.IRVar("+"): Int,
-        ir.IRVar("*"): Int,
-        ir.IRVar("print_int"): Int,
+        ir.IRVar("+"): Type(),
+        ir.IRVar("*"): Type(),
+        ir.IRVar("print_int"): Type(),
     }
     instructions = generate_ir(root_types, parse(tokenize("1 + 2 * 3")))
     expected_instructions = [

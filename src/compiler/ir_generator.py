@@ -25,7 +25,7 @@ def generate_ir(
         var_types[v] = t
         return v
 
-    def new_label(name: str, loc: Location) -> ir.Label:
+    def new_label(name: str, loc: Location | None) -> ir.Label:
         nonlocal label_counter
         label_counter += 1
         if label_counter == 1:
@@ -47,9 +47,7 @@ def generate_ir(
                 match expression.value:
                     case bool():
                         var = new_var(Bool)
-                        ins.append(
-                            ir.LoadBoolConst(
-                                loc, expression.value, var))
+                        ins.append(ir.LoadBoolConst(loc, expression.value, var))
                     case int():
                         var = new_var(Int)
                         ins.append(ir.LoadIntConst(loc, expression.value, var))
