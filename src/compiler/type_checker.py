@@ -1,5 +1,5 @@
 import compiler.ast as ast
-from typing import Optional, Callable, Union, Any
+from typing import Any
 from compiler.types import Type, FunType, Int, Bool, Unit
 from compiler.symtab import SymTab
 

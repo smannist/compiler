@@ -1,4 +1,3 @@
-import sys
 import compiler.ast as ast
 from typing import Optional, Callable, Union, Any
 from compiler.symtab import SymTab
