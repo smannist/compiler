@@ -260,6 +260,10 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         while peek().type != "end":
             expr = parse_expression()
+
+            if isinstance(expr, ast.LiteralVarDecl) and peek().text == "var":
+                consume(";")
+
             if peek().text == ";":
                 consume(";")
                 items.append((expr, True))

@@ -61,6 +61,14 @@ def generate_ir(
             case ast.Identifier():
                 return symbol_table.lookup(expression.name)
 
+            case ast.LiteralVarDecl():
+                var_init = visit(symbol_table, expression.initializer)
+                var_name = expression.identifier.name
+                var = new_var(expression.type)
+                symbol_table.set(var_name, var)
+                ins.append(ir.Copy(loc, var_init, var))
+                return var_unit
+
             case ast.BinaryOp():
                 var_op = symbol_table.lookup(expression.op)
                 var_left = visit(symbol_table, expression.left)
@@ -109,6 +117,14 @@ def generate_ir(
                     ins.append(l_end)
 
                     return var_result
+
+            case ast.Statements():
+                var = var_unit
+                for expr in expression.expressions:
+                    var = visit(symbol_table, expr)
+                if expression.result is not None:
+                    var = visit(symbol_table, expression.result)
+                return var
 
             case _:
                 raise Exception(f"{loc}: unsupported AST node: {expression}")
