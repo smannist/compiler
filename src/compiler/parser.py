@@ -229,11 +229,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_statements() -> ast.Statements:
         consume("{")
         expressions = []
-
         while peek().text != "}":
             expr = parse_expression()
             token = peek()
-
             if token.text == ";":
                 expressions.append(expr)
                 consume(";")
@@ -248,7 +246,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
                     f"{peek().loc}: consecutive result expressions are not allowed.")
             else:
                 expressions.append(expr)
-
         token = consume("}")
         return ast.Statements(expressions=expressions, location=token.loc)
 
@@ -260,15 +257,18 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         while peek().type != "end":
             expr = parse_expression()
-
-            if isinstance(expr, ast.LiteralVarDecl) and peek().text == "var":
-                consume(";")
-
-            if peek().text == ";":
-                consume(";")
-                items.append((expr, True))
+            if isinstance(expr, ast.LiteralVarDecl):
+                if peek().type == "end":
+                    items.append((expr, False))
+                else:
+                    consume(";")
+                    items.append((expr, True))
             else:
-                items.append((expr, False))
+                if peek().text == ";":
+                    consume(";")
+                    items.append((expr, True))
+                else:
+                    items.append((expr, False))
 
         if len(items) == 1 and not items[0][1]:
             if isinstance(items[0][0], ast.LiteralVarDecl):

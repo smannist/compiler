@@ -10,6 +10,8 @@ from compiler.type_checker import annotate_types
 ROOT_TYPES = {
         ir.IRVar("+"): Type(),
         ir.IRVar("*"): Type(),
+        ir.IRVar(">"): Type(),
+        ir.IRVar("="): Type(),
         ir.IRVar("print_int"): Type(),
     }
 

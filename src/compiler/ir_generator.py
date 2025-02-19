@@ -13,9 +13,9 @@ def generate_ir(
     var_types[var_unit] = Unit
 
     ins: list[ir.Instruction] = []
+    labels: dict[str, int] = {}
 
     var_counter = 0
-    label_counter = 0
 
     def new_var(t: Type) -> ir.IRVar:
         nonlocal var_counter
@@ -26,12 +26,11 @@ def generate_ir(
         return v
 
     def new_label(name: str, loc: Location | None) -> ir.Label:
-        nonlocal label_counter
-        label_counter += 1
-        if label_counter == 1:
-            label_name = "start"
-        else:
-            label_name = f"{name}{label_counter}"
+        nonlocal labels
+        if name not in labels:
+            labels[name] = 1
+        label_name = name if labels[name] == 1 else f"{name}{labels[name]}"
+        labels[name] += 1
         return ir.Label(location=loc, name=label_name)
 
     ins.append(new_label(loc=Location(0, 0), name="start"))
@@ -54,7 +53,8 @@ def generate_ir(
                     case None:
                         var = var_unit
                     case _:
-                        raise Exception(f"{loc}: unsupported literal: {type(expression.value).__name__}"
+                        raise Exception(
+                            f"{loc}: unsupported literal: {type(expression.value).__name__}"
                         )
                 return var
 
@@ -117,6 +117,22 @@ def generate_ir(
 
                     ins.append(l_end)
                     return var_unit
+
+            case ast.WhileExpr():
+                l_start = new_label("while_start", loc)
+                l_body = new_label("while_body", loc)
+                l_end = new_label("while_end", loc)
+
+                ins.append(l_start)
+
+                var_cond = visit(symbol_table, expression.condition)
+                ins.append(ir.CondJump(loc, var_cond, l_body, l_end))
+                ins.append(l_body)
+
+                visit(symbol_table, expression.body)
+                ins.append(ir.Jump(loc, l_start))
+                ins.append(l_end)
+                return var_unit
 
             case ast.Statements():
                 var = var_unit
