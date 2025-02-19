@@ -13,6 +13,8 @@ ROOT_TYPES = {
         ir.IRVar(">"): Type(),
         ir.IRVar("="): Type(),
         ir.IRVar("print_int"): Type(),
+        ir.IRVar("print_bool"): Type(),
+        ir.IRVar("read_int"): Type(),
     }
 
 

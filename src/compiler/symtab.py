@@ -54,7 +54,7 @@ def build_type_symtab() -> SymTab[TypeValue]:
     symtab.add_local("unary_not", lambda t: Bool if t is Bool else Unit)
     symtab.add_local("print_int", FunType(return_t=Unit, param_t=[Int]))
     symtab.add_local("print_bool", FunType(return_t=Unit, param_t=[Bool]))
-    symtab.add_local("read_int", FunType(return_t=Unit, param_t=[Int]))
+    symtab.add_local("read_int", FunType(return_t=Int, param_t=[Int]))
 
     return symtab
 

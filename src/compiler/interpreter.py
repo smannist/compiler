@@ -73,7 +73,7 @@ def interpret(
             local_scope = SymTab(parent=symbol_table)
             for expr in node.expressions:
                 interpret(expr, local_scope)
-            if node.result is not None:
+            if node.result:
                 return interpret(node.result, local_scope)
             return None
 

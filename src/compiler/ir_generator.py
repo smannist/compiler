@@ -134,6 +134,13 @@ def generate_ir(
                 ins.append(l_end)
                 return var_unit
 
+            case ast.FuncExpr():
+                var_ident = symbol_table.lookup(expression.identifier.name)
+                var_args = [visit(symbol_table, arg) for arg in expression.arguments]
+                var_result = new_var(expression.type)
+                ins.append(ir.Call(expression.location, var_ident, var_args, var_result))
+                return var_result
+
             case ast.Statements():
                 var = var_unit
                 for expr in expression.expressions:
