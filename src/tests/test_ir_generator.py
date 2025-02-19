@@ -54,3 +54,10 @@ def test_generate_ir_var_equal() -> None:
     assert len(instructions) == len(expected_instructions)
     for inst, exp_inst in zip(instructions, expected_instructions):
         assert inst == exp_inst
+
+
+def test_generate_ir_var_equal() -> None:
+    tree = parse(tokenize("2 != 4"))
+    annotate_types(tree, build_type_symtab())
+    instructions = generate_ir(ROOT_TYPES, tree)
+    print(instructions)
