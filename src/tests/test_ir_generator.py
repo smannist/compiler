@@ -2,7 +2,6 @@ from compiler import ir
 from compiler.tokenizer import tokenize, Location
 from compiler.parser import parse
 from compiler.ir_generator import generate_ir, ROOT_TYPES
-from compiler.types import Type
 from compiler.symtab import build_type_symtab
 from compiler.type_checker import annotate_types
 
@@ -40,9 +39,7 @@ def test_generate_ir_var_decl() -> None:
 
 
 def test_generate_ir_var_equal() -> None:
-    source = "var x = 123; var y = 200; x = y"
-    tokens = tokenize(source)
-    tree = parse(tokens)
+    tree = parse(tokenize("var x = 123; var y = 200; x = y"))
     annotate_types(tree, build_type_symtab())
     instructions = generate_ir(ROOT_TYPES, tree)
     expected_instructions = [

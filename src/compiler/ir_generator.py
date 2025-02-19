@@ -91,29 +91,54 @@ def generate_ir(
                 return var_unit
 
             case ast.BinaryOp():
-                if expression.op == "=":
-                    if not isinstance(expression.left, ast.Identifier):
-                        raise Exception(
-                            f"{loc}: Left-hand side of assignment must be an identifier"
+                match expression.op:
+                    case "=":
+                        if not isinstance(expression.left, ast.Identifier):
+                            raise Exception(f"{loc}: Left-hand side of assignment must be an identifier")
+                        var_left = symbol_table.lookup(expression.left.name)
+                        var_right = visit(symbol_table, expression.right)
+                        ins.append(ir.Copy(loc, var_right, var_left))
+                        return var_left
+                    case "and" | "or" as op:
+                        l_right = new_label(f"{op}_right", loc)
+                        l_skip  = new_label(f"{op}_skip", loc)
+                        l_end   = new_label(f"{op}_end", loc)
+
+                        var_left = visit(symbol_table, expression.left)
+
+                        ins.append(ir.CondJump(
+                            loc, 
+                            var_left, 
+                            l_right if op == "and" else l_skip, 
+                            l_skip if op == "and" else l_right
+                        ))
+                        ins.append(l_right)
+
+                        var_right = visit(symbol_table, expression.right)
+                        var_result = new_var(Bool)
+
+                        ins.append(ir.Copy(loc, var_right, var_result))
+                        ins.append(ir.Jump(loc, l_end))
+                        ins.append(l_skip)
+                        ins.append(ir.LoadBoolConst(loc, op != "and", var_result))
+                        ins.append(ir.Jump(loc, l_end))
+
+                        ins.append(l_end)
+                        return var_result
+                    case _:
+                        var_op = symbol_table.lookup(expression.op)
+                        var_left = visit(symbol_table, expression.left)
+                        var_right = visit(symbol_table, expression.right)
+                        var_result = new_var(expression.type)
+                        ins.append(
+                            ir.Call(
+                                loc,
+                                var_op,
+                                [var_left, var_right],
+                                var_result
+                            )
                         )
-                    var_left = symbol_table.lookup(expression.left.name)
-                    var_right = visit(symbol_table, expression.right)
-                    ins.append(ir.Copy(loc, var_right, var_left))
-                    return var_left
-                else:
-                    var_op = symbol_table.lookup(expression.op)
-                    var_left = visit(symbol_table, expression.left)
-                    var_right = visit(symbol_table, expression.right)
-                    var_result = new_var(expression.type)
-                    ins.append(
-                        ir.Call(
-                            loc,
-                            var_op,
-                            [var_left, var_right],
-                            var_result
-                        )
-                    )
-                    return var_result
+                        return var_result
 
             case ast.UnaryOp():
                 var_unary_op = symbol_table.lookup("unary_" + expression.op)
@@ -128,7 +153,7 @@ def generate_ir(
                 return var_result
 
             case ast.IfExpr():
-                if expression.else_:
+                if expression.else_.value:
                     l_then = new_label("then", loc)
                     l_else = new_label("else", loc)
                     l_end = new_label("if_end", loc)
@@ -151,13 +176,10 @@ def generate_ir(
                 else:
                     l_then = new_label("then", loc)
                     l_end = new_label("if_end", loc)
-
                     var_cond = visit(symbol_table, expression.condition)
                     ins.append(ir.CondJump(loc, var_cond, l_then, l_end))
-
                     ins.append(l_then)
                     visit(symbol_table, expression.then)
-
                     ins.append(l_end)
                     return var_unit
 
