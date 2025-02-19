@@ -85,19 +85,7 @@ def generate_ir(
                 return var_result
 
             case ast.IfExpr():
-                if expression.else_ is None:
-                    l_then = new_label("then", loc)
-                    l_end = new_label("if_end", loc)
-
-                    var_cond = visit(symbol_table, expression.condition)
-                    ins.append(ir.CondJump(loc, var_cond, l_then, l_end))
-
-                    ins.append(l_then)
-                    visit(symbol_table, expression.then)
-
-                    ins.append(l_end)
-                    return var_unit
-                else:
+                if expression.else_:
                     l_then = new_label("then", loc)
                     l_else = new_label("else", loc)
                     l_end = new_label("if_end", loc)
@@ -117,6 +105,18 @@ def generate_ir(
                     ins.append(l_end)
 
                     return var_result
+                else:
+                    l_then = new_label("then", loc)
+                    l_end = new_label("if_end", loc)
+
+                    var_cond = visit(symbol_table, expression.condition)
+                    ins.append(ir.CondJump(loc, var_cond, l_then, l_end))
+
+                    ins.append(l_then)
+                    visit(symbol_table, expression.then)
+
+                    ins.append(l_end)
+                    return var_unit
 
             case ast.Statements():
                 var = var_unit
