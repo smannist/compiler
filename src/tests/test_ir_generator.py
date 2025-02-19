@@ -1,21 +1,10 @@
 from compiler import ir
 from compiler.tokenizer import tokenize, Location
 from compiler.parser import parse
-from compiler.ir_generator import generate_ir
+from compiler.ir_generator import generate_ir, ROOT_TYPES
 from compiler.types import Type
 from compiler.symtab import build_type_symtab
 from compiler.type_checker import annotate_types
-
-# root_types dont need correct types atm
-ROOT_TYPES = {
-        ir.IRVar("+"): Type(),
-        ir.IRVar("*"): Type(),
-        ir.IRVar(">"): Type(),
-        ir.IRVar("="): Type(),
-        ir.IRVar("print_int"): Type(),
-        ir.IRVar("print_bool"): Type(),
-        ir.IRVar("read_int"): Type(),
-    }
 
 
 def test_generate_ir_for_1_plus_2_times_3() -> None:

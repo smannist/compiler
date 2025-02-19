@@ -3,6 +3,27 @@ from compiler.tokenizer import Location
 from compiler.symtab import SymTab
 from compiler.types import Type, Bool, Int, Unit
 
+# root_types dont need correct types atm
+ROOT_TYPES = {
+    ir.IRVar(name): Type() for name in [
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
+        ">",
+        "<",
+        "<=",
+        ">",
+        ">=",
+        "print_int",
+        "print_bool",
+        "read_int",
+        "unary_-",
+        "unary_not"
+    ]
+}
+
 
 def generate_ir(
     root_types: dict[ir.IRVar, Type],
@@ -84,6 +105,18 @@ def generate_ir(
                 )
                 return var_result
 
+            case ast.UnaryOp():
+                var_unary_op = symbol_table.lookup("unary_" + expression.op)
+                var_value = visit(symbol_table, expression.operand)
+
+                if expression.op == "not":
+                    var_result = new_var(Bool)
+                elif expression.op == "-":
+                    var_result = new_var(Int)
+
+                ins.append(ir.Call(loc, var_unary_op, [var_value], var_result))
+                return var_result
+
             case ast.IfExpr():
                 if expression.else_:
                     l_then = new_label("then", loc)
@@ -136,16 +169,25 @@ def generate_ir(
 
             case ast.FuncExpr():
                 var_ident = symbol_table.lookup(expression.identifier.name)
-                var_args = [visit(symbol_table, arg) for arg in expression.arguments]
+                var_args = [
+                    visit(symbol_table, arg)for arg in expression.arguments
+                ]
                 var_result = new_var(expression.type)
-                ins.append(ir.Call(expression.location, var_ident, var_args, var_result))
+                ins.append(
+                    ir.Call(
+                        expression.location,
+                        var_ident,
+                        var_args,
+                        var_result
+                    )
+                )
                 return var_result
 
             case ast.Statements():
                 var = var_unit
                 for expr in expression.expressions:
                     var = visit(symbol_table, expr)
-                if expression.result is not None:
+                if expression.result:
                     var = visit(symbol_table, expression.result)
                 return var
 
