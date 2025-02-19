@@ -37,3 +37,23 @@ def test_generate_ir_var_decl() -> None:
     assert len(instructions) == len(expected_instructions)
     for inst, exp_inst in zip(instructions, expected_instructions):
         assert inst == exp_inst
+
+
+def test_generate_ir_var_equal() -> None:
+    source = "var x = 123; var y = 200; x = y"
+    tokens = tokenize(source)
+    tree = parse(tokens)
+    annotate_types(tree, build_type_symtab())
+    instructions = generate_ir(ROOT_TYPES, tree)
+    expected_instructions = [
+        ir.Label(Location(0, 0), "start"),
+        ir.LoadIntConst(Location(1, 9), 123, ir.IRVar("x")),
+        ir.Copy(Location(1, 5), ir.IRVar("x"), ir.IRVar("x2")),
+        ir.LoadIntConst(Location(1, 22), 200, ir.IRVar("x3")),
+        ir.Copy(Location(1, 18), ir.IRVar("x3"), ir.IRVar("x4")),
+        ir.Copy(Location(1, 29), ir.IRVar("x4"), ir.IRVar("x2")),
+        ir.Call(Location(1, 31), ir.IRVar("print_int"), [ir.IRVar("x2")], ir.IRVar("x5")),
+    ]
+    assert len(instructions) == len(expected_instructions)
+    for inst, exp_inst in zip(instructions, expected_instructions):
+        assert inst == exp_inst

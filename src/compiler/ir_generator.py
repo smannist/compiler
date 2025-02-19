@@ -5,7 +5,7 @@ from compiler.types import Type, Bool, Int, Unit
 
 # root_types dont need correct types atm
 ROOT_TYPES = {
-    ir.IRVar(name): Type() for name in [
+    ir.IRVar(symbol): Type() for symbol in [
         "+",
         "-",
         "*",
@@ -52,7 +52,7 @@ def generate_ir(
             labels[name] = 1
         label_name = name if labels[name] == 1 else f"{name}{labels[name]}"
         labels[name] += 1
-        return ir.Label(location=loc, name=label_name)
+        return ir.Label(loc, label_name)
 
     ins.append(new_label(loc=Location(0, 0), name="start"))
 
@@ -85,25 +85,35 @@ def generate_ir(
             case ast.LiteralVarDecl():
                 var_init = visit(symbol_table, expression.initializer)
                 var_name = expression.identifier.name
-                var = new_var(expression.type)
+                var = new_var(var_types[var_init])
                 symbol_table.set(var_name, var)
                 ins.append(ir.Copy(loc, var_init, var))
                 return var_unit
 
             case ast.BinaryOp():
-                var_op = symbol_table.lookup(expression.op)
-                var_left = visit(symbol_table, expression.left)
-                var_right = visit(symbol_table, expression.right)
-                var_result = new_var(expression.type)
-                ins.append(
-                    ir.Call(
-                        loc,
-                        var_op,
-                        [var_left, var_right],
-                        var_result
+                if expression.op == "=":
+                    if not isinstance(expression.left, ast.Identifier):
+                        raise Exception(
+                            f"{loc}: Left-hand side of assignment must be an identifier"
+                        )
+                    var_left = symbol_table.lookup(expression.left.name)
+                    var_right = visit(symbol_table, expression.right)
+                    ins.append(ir.Copy(loc, var_right, var_left))
+                    return var_left
+                else:
+                    var_op = symbol_table.lookup(expression.op)
+                    var_left = visit(symbol_table, expression.left)
+                    var_right = visit(symbol_table, expression.right)
+                    var_result = new_var(expression.type)
+                    ins.append(
+                        ir.Call(
+                            loc,
+                            var_op,
+                            [var_left, var_right],
+                            var_result
+                        )
                     )
-                )
-                return var_result
+                    return var_result
 
             case ast.UnaryOp():
                 var_unary_op = symbol_table.lookup("unary_" + expression.op)
