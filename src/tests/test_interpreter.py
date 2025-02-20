@@ -1,11 +1,10 @@
 from pytest import CaptureFixture
 from compiler.parser import parse
 from compiler.tokenizer import tokenize
-from compiler.interpreter import interpret
-from compiler.symtab import build_interpreter_symtab
+from compiler.interpreter import interpret, build_interpreter_root_symtab
 
 
-symtab = build_interpreter_symtab()
+symtab = build_interpreter_root_symtab()
 
 
 def test_interpret_basic_sum() -> None:

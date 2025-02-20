@@ -8,8 +8,7 @@ from typing import Any
 
 from compiler.tokenizer import tokenize
 from compiler.parser import parse
-from compiler.type_checker import annotate_types
-from compiler.symtab import build_type_symtab
+from compiler.type_checker import annotate_types, build_typechecker_root_symtab
 from compiler.ir_generator import generate_ir, ROOT_TYPES
 from compiler.assembly_generator import generate_assembly
 from compiler.assembler import assemble_and_get_executable
@@ -18,7 +17,7 @@ from compiler.assembler import assemble_and_get_executable
 def call_compiler(source_code: str, input_file_name: str) -> bytes:
     try:
         tree = parse(tokenize(source_code))
-        annotate_types(tree, build_type_symtab())
+        annotate_types(tree, build_typechecker_root_symtab())
         instructions = generate_ir(ROOT_TYPES, tree)
         assembly = generate_assembly(instructions)
         return assemble_and_get_executable(

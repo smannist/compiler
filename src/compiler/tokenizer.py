@@ -48,7 +48,9 @@ def tokenize(source_code: str) -> list[Token]:
     pattern = regex.compile(
         "|".join(
             f"(?P<{token_type}>{pattern})" for token_type,
-            pattern in TOKEN_PATTERNS.items()))
+            pattern in TOKEN_PATTERNS.items()
+        )
+    )
 
     for match in regex.finditer(pattern, source_code):
         token_type = match.lastgroup
@@ -63,9 +65,16 @@ def tokenize(source_code: str) -> list[Token]:
             continue
         elif token_type == "except":
             raise RuntimeError(
-                f"Caught unexpected value: '{value}' at position ({line},{column}).")
+                f"Caught unexpected value: '{value}' at position ({line},{column})."
+            )
 
-        tokens.append(Token(Location(line, column), token_type, value))
+        tokens.append(
+            Token(
+                Location(line, column),
+                token_type,
+                value
+            )
+        )
 
         column += len(value)
 

@@ -1,11 +1,10 @@
 from compiler.parser import parse
 from compiler.tokenizer import tokenize
-from compiler.type_checker import typecheck
-from compiler.symtab import build_type_symtab
+from compiler.type_checker import typecheck, build_typechecker_root_symtab
 from compiler.types import Int, Unit, Bool
 
 
-symtab = build_type_symtab()
+symtab = build_typechecker_root_symtab()
 
 
 def test_typecheck_simple_plus_operation_without_semi() -> None:

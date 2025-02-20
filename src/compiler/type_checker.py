@@ -1,7 +1,9 @@
 import compiler.ast as ast
-from typing import Any
+from typing import Any, Union, Optional, Callable
 from compiler.types import Type, FunType, Int, Bool, Unit
 from compiler.symtab import SymTab
+
+Value = Union[Type, Optional[Callable[..., Any]]]
 
 
 def typecheck(
@@ -125,3 +127,29 @@ def annotate_types(node: ast.Expression | None, symbol_table: SymTab[Any]) -> Ty
     t = typecheck(node, symbol_table)
     node.type = t
     return t
+
+
+def build_typechecker_root_symtab() -> SymTab[Value]:
+    symtab: SymTab[Value] = SymTab()
+
+    arith_op: Callable = lambda t1, t2: Int if t1 is Int and t2 is Int else Unit
+    cmp_op: Callable = lambda t1, t2: Bool if t1 is Int and t2 is Int else Unit
+    eq_op: Callable = lambda t1, t2: Bool if t1 is t2 else Unit
+    bool_op: Callable = lambda t1, t2: Bool if t1 is Bool and t2 is Bool else Unit
+
+    for op in ["+", "-", "*", "/", "%"]:
+        symtab.add_local(op, arith_op)
+    for op in ["<", "<=", ">", ">="]:
+        symtab.add_local(op, cmp_op)
+    for op in ["and", "or"]:
+        symtab.add_local(op, bool_op)
+    for op in ["==", "!="]:
+        symtab.add_local(op, eq_op)
+
+    symtab.add_local("unary_-", lambda t: Int if t is Int else Unit)
+    symtab.add_local("unary_not", lambda t: Bool if t is Bool else Unit)
+    symtab.add_local("print_int", FunType(return_t=Unit, param_t=[Int]))
+    symtab.add_local("print_bool", FunType(return_t=Unit, param_t=[Bool]))
+    symtab.add_local("read_int", FunType(return_t=Int, param_t=[Int]))
+
+    return symtab

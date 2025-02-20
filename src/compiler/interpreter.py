@@ -1,3 +1,4 @@
+import sys
 import compiler.ast as ast
 from typing import Optional, Callable, Union, Any
 from compiler.symtab import SymTab
@@ -84,3 +85,29 @@ def interpret(
 
         case _:
             raise ValueError(f"Unsupported node type: {type(node).__name__}")
+
+
+def build_interpreter_root_symtab() -> SymTab[Value]:
+    symtab: SymTab[Value] = SymTab()
+
+    symtab.add_local("unary_-", lambda a: -a)
+    symtab.add_local("unary_not", lambda a: not a)
+    symtab.add_local("+", lambda a, b: a + b)
+    symtab.add_local("-", lambda a, b: a - b)
+    symtab.add_local("%", lambda a, b: a % b)
+    symtab.add_local("*", lambda a, b: a * b)
+    symtab.add_local("/", lambda a, b: a / b)
+    symtab.add_local("==", lambda a, b: a == b)
+    symtab.add_local("!=", lambda a, b: a != b)
+    symtab.add_local("<", lambda a, b: a < b)
+    symtab.add_local("<=", lambda a, b: a <= b)
+    symtab.add_local(">", lambda a, b: a > b)
+    symtab.add_local(">=", lambda a, b: a >= b)
+    symtab.add_local("False", False)
+    symtab.add_local("True", True)
+    symtab.add_local("None", None)
+    symtab.add_local("print_int", lambda a: print(a))
+    symtab.add_local("print_bool", lambda a: print("true" if a else "false"))
+    symtab.add_local("read_int", lambda: int(sys.stdin.readline().strip()))
+
+    return symtab

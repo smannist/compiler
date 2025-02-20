@@ -2,13 +2,15 @@ from compiler import ir
 from compiler.tokenizer import tokenize, Location
 from compiler.parser import parse
 from compiler.ir_generator import generate_ir, ROOT_TYPES
-from compiler.symtab import build_type_symtab
-from compiler.type_checker import annotate_types
+from compiler.type_checker import annotate_types, build_typechecker_root_symtab
+
+
+symtab = build_typechecker_root_symtab()
 
 
 def test_generate_ir_for_1_plus_2_times_3() -> None:
     tree = parse(tokenize("1 + 2 * 3"))
-    annotate_types(tree, build_type_symtab())
+    annotate_types(tree, symtab)
     instructions = generate_ir(ROOT_TYPES, tree)
     expected_instructions = [
         ir.Label(Location(0, 0), "start"),
@@ -26,7 +28,7 @@ def test_generate_ir_for_1_plus_2_times_3() -> None:
 
 def test_generate_ir_var_decl() -> None:
     tree = parse(tokenize("var x = 123;"))
-    annotate_types(tree, build_type_symtab())
+    annotate_types(tree, symtab)
     instructions = generate_ir(ROOT_TYPES, tree)
     expected_instructions = [
         ir.Label(Location(0, 0), "start"),
@@ -40,7 +42,7 @@ def test_generate_ir_var_decl() -> None:
 
 def test_generate_ir_var_equal() -> None:
     tree = parse(tokenize("var x = 123; var y = 200; x = y"))
-    annotate_types(tree, build_type_symtab())
+    annotate_types(tree, symtab)
     instructions = generate_ir(ROOT_TYPES, tree)
     expected_instructions = [
         ir.Label(Location(0, 0), "start"),

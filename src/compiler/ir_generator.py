@@ -91,7 +91,7 @@ def generate_ir(
                 if symbol_table.get_local(var_name):
                     raise Exception(
                         f"{loc}: Variable '{var_name}' already declared in the scope."
-                )
+                    )
 
                 var = new_var(var_types[var_init])
                 symbol_table.set(var_name, var, local=True)
@@ -121,7 +121,8 @@ def generate_ir(
                             var_left,
                             l_right if op == "and" else l_skip,
                             l_skip if op == "and" else l_right
-                        ))
+                            )
+                        )
                         ins.append(l_right)
 
                         var_right = visit(symbol_table, expression.right)
@@ -166,7 +167,8 @@ def generate_ir(
                 if expression.else_ is not None and not (
                     isinstance(
                         expression.else_,
-                        ast.Literal) and expression.else_.value is None):
+                        ast.Literal) and expression.else_.value is None
+                    ):
                     l_then = new_label("then", loc)
                     l_else = new_label("else", loc)
                     l_end = new_label("if_end", loc)
@@ -215,7 +217,7 @@ def generate_ir(
             case ast.FuncExpr():
                 var_ident = symbol_table.lookup(expression.identifier.name)
                 var_args = [
-                    visit(symbol_table, arg)for arg in expression.arguments
+                    visit(symbol_table, arg) for arg in expression.arguments
                 ]
                 var_result = new_var(expression.type)
                 ins.append(
