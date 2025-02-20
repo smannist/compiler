@@ -1,5 +1,6 @@
 import dataclasses
 from compiler import ir
+from compiler.intrinsics import all_intrinsics, IntrinsicArgs
 
 
 class Locals:
@@ -43,3 +44,75 @@ def get_all_ir_variables(instructions: list[ir.Instruction]) -> list[ir.IRVar]:
                     if isinstance(v, ir.IRVar):
                         add(v)
     return result_list
+
+
+def generate_assembly(instructions: list[ir.Instruction]) -> str:
+    lines = []
+    def emit(line: str) -> None:
+        lines.append(line)
+
+    locals = Locals(
+        variables=get_all_ir_variables(instructions)
+    )
+
+    emit(".extern print_int")
+    emit(".extern print_bool")
+    emit(".extern read_int")
+    emit(".global main")
+    emit(".type main, @function")
+    emit(".section .text")
+    emit("main:")
+    emit("pushq %rbp")
+    emit("movq %rsp, %rbp")
+    emit(f"subq ${locals.stack_used()}, %rsp")
+
+    for insn in instructions:
+        match insn:
+            case ir.Label():
+                emit("")
+                emit(f".L{insn.name}:")
+
+            case ir.LoadIntConst():
+                if -2**31 <= insn.value < 2**31:
+                    emit(f"movq ${insn.value}, {locals.get_ref(insn.dest)}")
+                else:
+                    emit(f"movabsq ${insn.value}, %rax")
+                    emit(f"movq %rax, {locals.get_ref(insn.dest)}")
+
+            case ir.LoadBoolConst():
+                bool_val = 1 if insn.value else 0
+                emit(f"movq ${bool_val}, {locals.get_ref(insn.dest)}")
+
+            case ir.Copy():
+                emit(f"movq {locals.get_ref(insn.source)}, %rax")
+                emit(f"movq %rax, {locals.get_ref(insn.dest)}")
+
+            case ir.CondJump():
+                emit(f"cmpq $0, {locals.get_ref(insn.cond)}")
+                emit(f"jne .L{insn.then_label.name}")
+                emit(f"jmp .L{insn.else_label.name}")
+
+            case ir.Jump():
+                emit(f"jmp .L{insn.label.name}")
+
+            case ir.Call():
+                intrinsic = all_intrinsics.get(insn.fun.name)
+                if intrinsic:
+                    arg_refs = [locals.get_ref(arg) for arg in insn.args]
+                    result_reg = "%rax"
+                    intrinsic(IntrinsicArgs(arg_refs, result_reg, emit))
+                    emit(f"movq {result_reg}, {locals.get_ref(insn.dest)}")
+                else:
+                    reg_order = ["%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"]
+                    for i, arg in enumerate(insn.args):
+                        if i < len(reg_order):
+                            emit(f"movq {locals.get_ref(arg)}, {reg_order[i]}")
+                    emit(f"call {insn.fun.name}")
+                    emit(f"movq %rax, {locals.get_ref(insn.dest)}")
+
+    emit("")
+    emit("movq %rbp, %rsp")
+    emit("popq %rbp")
+    emit("ret")
+
+    return "\n".join(lines)

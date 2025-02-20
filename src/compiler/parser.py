@@ -257,7 +257,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         while peek().type != "end":
             expr = parse_expression()
-            if isinstance(expr, ast.LiteralVarDecl):
+            if should_force_semicolon(expr):
                 if peek().type == "end":
                     items.append((expr, False))
                 else:
@@ -300,5 +300,12 @@ def parse(tokens: list[Token]) -> ast.Expression:
             "unary_op",
             "punctuation",
             "keyword"] or prev_token.text == "("
+
+    def should_force_semicolon(expr: ast.Expression) -> bool:
+        if isinstance(expr, ast.LiteralVarDecl):
+            return not isinstance(expr.initializer, ast.Statements)
+        elif isinstance(expr, ast.Literal):
+            return True
+        return False
 
     return parse_source_code()

@@ -68,14 +68,22 @@ def typecheck(
 
         case ast.IfExpr():
             cond_type = annotate_types(node.condition, symbol_table)
+
             if cond_type is not Bool:
                 raise TypeError("Condition of if must be a boolean")
+
             then_type = annotate_types(node.then, symbol_table)
+
+            if (isinstance(node.else_, ast.Literal) and node.else_.value is None):
+                return Unit
+
             else_type = annotate_types(node.else_, symbol_table)
+
             if then_type is not else_type:
                 raise TypeError(
                     "Both branches of if-then-else must have the same type"
                 )
+
             return then_type
 
         case ast.WhileExpr():
@@ -99,10 +107,10 @@ def typecheck(
             return fun.return_t
 
         case ast.Statements():
-            local_scope = SymTab[Any](parent=symbol_table)
+            local_symtab = SymTab[Any](parent=symbol_table)
             for expr in node.expressions:
-                annotate_types(expr, local_scope)
-            return annotate_types(node.result, local_scope) if node.result is not None else Unit
+                annotate_types(expr, local_symtab)
+            return annotate_types(node.result, local_symtab) if node.result is not None else Unit
 
         case _:
             raise Exception(

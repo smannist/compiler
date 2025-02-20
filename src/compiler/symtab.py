@@ -15,6 +15,10 @@ class SymTab[T]:
         """Adds a new symbol in the current scope."""
         self.symbols[symbol] = value
 
+    def get_local(self, name: str) -> T | None:
+        """Returns a symbol if it already exists in the scope."""
+        return self.symbols.get(name)
+
     def lookup(self, value: str) -> T:
         """Looks up a symbol or a function, searching the current and outer scopes."""
         if value in self.symbols:

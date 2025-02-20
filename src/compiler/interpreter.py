@@ -70,11 +70,11 @@ def interpret(
             return None
 
         case ast.Statements():
-            local_scope = SymTab(parent=symbol_table)
+            local_symtab = SymTab(parent=symbol_table)
             for expr in node.expressions:
-                interpret(expr, local_scope)
+                interpret(expr, local_symtab)
             if node.result:
-                return interpret(node.result, local_scope)
+                return interpret(node.result, local_symtab)
             return None
 
         case ast.WhileExpr():

@@ -87,8 +87,14 @@ def generate_ir(
             case ast.LiteralVarDecl():
                 var_init = visit(symbol_table, expression.initializer)
                 var_name = expression.identifier.name
+
+                if symbol_table.get_local(var_name):
+                    raise Exception(
+                        f"{loc}: Variable '{var_name}' already declared in the scope."
+                )
+
                 var = new_var(var_types[var_init])
-                symbol_table.set(var_name, var)
+                symbol_table.set(var_name, var, local=True)
                 ins.append(ir.Copy(loc, var_init, var))
                 return var_unit
 
@@ -223,12 +229,12 @@ def generate_ir(
                 return var_result
 
             case ast.Statements():
-                var = var_unit
+                local_symtab = SymTab[ir.IRVar](parent=symbol_table)
                 for expr in expression.expressions:
-                    var = visit(symbol_table, expr)
+                    visit(local_symtab, expr)
                 if expression.result:
-                    var = visit(symbol_table, expression.result)
-                return var
+                    return visit(local_symtab, expression.result)
+                return var_unit
 
             case _:
                 raise Exception(f"{loc}: unsupported AST node: {expression}")

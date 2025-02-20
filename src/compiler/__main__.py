@@ -6,16 +6,30 @@ from socketserver import ForkingTCPServer, StreamRequestHandler
 from traceback import format_exception
 from typing import Any
 
+from compiler.tokenizer import tokenize
+from compiler.parser import parse
+from compiler.type_checker import annotate_types
+from compiler.symtab import build_type_symtab
+from compiler.ir_generator import generate_ir, ROOT_TYPES
+from compiler.assembly_generator import generate_assembly
+from compiler.assembler import assemble_and_get_executable
+
 
 def call_compiler(source_code: str, input_file_name: str) -> bytes:
-    # *** TODO ***
-    # Call your compiler here and return the compiled executable.
-    # Raise an exception on compilation error.
-    #
-    # The input file name is informational only: you can optionally include in your source locations and error messages,
-    # or you can ignore it.
-    # *** TODO ***
-    raise NotImplementedError("Compiler not implemented")
+    try:
+        tree = parse(tokenize(source_code))
+        annotate_types(tree, build_type_symtab())
+        instructions = generate_ir(ROOT_TYPES, tree)
+        assembly = generate_assembly(instructions)
+        return assemble_and_get_executable(
+            assembly_code=assembly,
+            workdir=None,
+            tempfile_basename="program",
+            link_with_c=False,
+            extra_libraries=[]
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to compile: {e}")
 
 
 def main() -> int:
