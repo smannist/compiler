@@ -263,43 +263,32 @@ def parse(tokens: list[Token]) -> ast.Expression:
         if not tokens:
             raise EmptyListException("token list must not be empty.")
 
-        items: list[tuple[ast.Expression, bool]] = []
+        expressions: list[ast.Expression] = []
+        ended_with_semicolon = False
 
         while peek().type != "end":
-            expr = parse_expression()
-            if should_force_semicolon(expr):
-                if peek().type == "end":
-                    items.append((expr, False))
-                else:
-                    consume(";")
-                    items.append((expr, True))
+            expressions.append(parse_expression())
+            if peek().text == ";":
+                consume(";")
+                ended_with_semicolon = True
             else:
-                if peek().text == ";":
-                    consume(";")
-                    items.append((expr, True))
-                else:
-                    items.append((expr, False))
+                ended_with_semicolon = False
 
-        if len(items) == 1 and not items[0][1]:
-            if isinstance(items[0][0], ast.LiteralVarDecl):
-                items[0][0].as_expression = True
-            return items[0][0]
-
-        last_expr, terminated = items[-1]
-        if not terminated:
-            if isinstance(last_expr, ast.LiteralVarDecl):
-                last_expr.as_expression = True
-            result_expr = last_expr
-            exprs = [expr for expr, _ in items[:-1]]
-        else:
-            result_expr = ast.Literal(value=None, location=None)
-            exprs = [expr for expr, _ in items]
-
-        return ast.Statements(
-            expressions=exprs,
-            result=result_expr,
-            location=peek().loc
-        )
+        match (len(expressions), ended_with_semicolon):
+            case (1, False):  # single expression program no ';'
+                return expressions[0]
+            case (_, True):  # any size, code ends with ';'
+                return ast.Statements(
+                    expressions=expressions,
+                    result=ast.Literal(value=None, location=None),
+                    location=peek().loc,
+                )
+            case _:  # rest of the cases
+                return ast.Statements(
+                    expressions=expressions[:-1],
+                    result=expressions[-1],
+                    location=peek().loc,
+                )
 
     def is_unary() -> bool:
         if pos == 0:
@@ -310,12 +299,5 @@ def parse(tokens: list[Token]) -> ast.Expression:
             "unary_op",
             "punctuation",
             "keyword"] or prev_token.text == "("
-
-    def should_force_semicolon(expr: ast.Expression) -> bool:
-        if isinstance(expr, ast.LiteralVarDecl):
-            return not isinstance(expr.initializer, ast.Statements)
-        elif isinstance(expr, ast.Literal):
-            return True
-        return False
 
     return parse_source_code()

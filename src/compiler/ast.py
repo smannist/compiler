@@ -74,4 +74,3 @@ class LiteralVarDecl(Expression):
     """AST node which represents a literal variable declaration."""
     identifier: Identifier
     initializer: Expression
-    as_expression: bool = False

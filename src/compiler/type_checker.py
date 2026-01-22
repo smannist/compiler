@@ -24,14 +24,14 @@ def typecheck(
             return symbol_table.lookup(node.name)
 
         case ast.LiteralVarDecl():
-            inferred_type = annotate_types(node.initializer, symbol_table)
-            if node.type is not Unit and node.type is not inferred_type:
+            initializer_type = annotate_types(node.initializer, symbol_table)
+            if node.type is not Unit and node.type is not initializer_type:
                 raise TypeError(
                     f"Type mismatch in declaration of '{node.identifier.name}': "
-                    f"declared type {node.type} but initializer has type {inferred_type}"
+                    f"declared type {node.type} but initializer has type {initializer_type}"
                 )
-            symbol_table.set(node.identifier.name, inferred_type, local=True)
-            return inferred_type if node.as_expression else Unit
+            symbol_table.set(node.identifier.name, initializer_type, local=True)
+            return initializer_type
 
         case ast.BinaryOp():
             if node.op == "=":
